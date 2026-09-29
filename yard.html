@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The EasyTrade Container Yard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1210; --surface:#0F1B18; --surface-2:#132420; --border:#20342E; --border-strong:#2C453D;
+  --amber:#F2A623; --amber-dim:#8C6318; --teal:#3FC79A; --teal-dim:#1B4B3C; --coral:#E8734A;
+  --text:#E7E5DC; --text-2:#9BA69F; --text-3:#5E7069; --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  --steel:#3A4D47; --rust:#C97A4A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh;overflow-x:hidden}
+::selection{background:var(--amber-dim);color:#fff}
+a{color:var(--teal)}
+code,.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+/* ground texture */
+body{
+  background-image:
+    radial-gradient(900px 400px at 20% -10%, rgba(63,199,154,0.08), transparent 60%),
+    radial-gradient(700px 380px at 90% 10%, rgba(242,166,35,0.05), transparent 55%);
+}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+/* ---- Header ---- */
+header{padding:64px 0 32px;border-bottom:1px solid var(--border)}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--teal);margin-bottom:16px;letter-spacing:.02em}
+h1{font-size:clamp(28px,4vw,42px);font-weight:700;max-width:760px;line-height:1.2}
+.sub{margin-top:14px;max-width:600px;color:var(--text-2);font-size:15px}
+.instruction{
+  display:inline-flex;align-items:center;gap:8px;margin-top:22px;padding:8px 14px;
+  border:1px solid var(--border-strong);border-radius:20px;font-family:var(--mono);font-size:12.5px;color:var(--amber);
+  background:var(--surface);
+}
+.instruction .k{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px;color:var(--text)}
+
+/* ---- Filter tabs ---- */
+.tabs{display:flex;gap:8px;margin:28px 0 8px;flex-wrap:wrap}
+.tab{
+  font-family:var(--mono);font-size:12.5px;padding:7px 14px;border-radius:20px;cursor:pointer;
+  border:1px solid var(--border-strong);color:var(--text-2);background:transparent;transition:background .15s,color .15s;
+}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--surface-2);color:var(--text);border-color:var(--teal)}
+.legend{display:flex;gap:18px;margin:16px 0 8px;flex-wrap:wrap;font-size:12px;color:var(--text-3)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* ---- Yard grid ---- */
+.progress-strip{display:flex;align-items:center;gap:14px;margin:8px 0 30px}
+.progress-track{flex:1;height:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);width:0%;transition:width .5s ease}
+.progress-text{font-family:var(--mono);font-size:12px;color:var(--text-2);white-space:nowrap}
+
+.yard{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px;
+  padding:30px 0 90px;perspective:1400px;
+}
+.container-box{
+  position:relative;border-radius:6px;cursor:pointer;height:150px;
+  transform-style:preserve-3d;opacity:0;transform:translateY(-40px) rotateX(12deg);
+  animation:drop .6s cubic-bezier(.2,.9,.3,1.2) forwards;
+  transition:transform .22s ease, box-shadow .22s ease;
+}
+.container-box.hidden{display:none}
+@keyframes drop{to{opacity:1;transform:translateY(0) rotateX(0deg)}}
+@media (prefers-reduced-motion: reduce){ .container-box{animation:none;opacity:1;transform:none} }
+
+.container-box:hover{transform:translateY(-6px)}
+.container-box:hover .face{box-shadow:0 14px 30px -10px rgba(0,0,0,.55)}
+
+.face{
+  position:absolute;inset:0;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;
+  border:1px solid var(--border-strong);
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 2px, transparent 2px, transparent 10px),
+    var(--surface);
+  box-shadow:0 8px 18px -10px rgba(0,0,0,.5);
+  transition:box-shadow .22s ease;
+}
+.face::before{ /* top category stripe */
+  content:'';position:absolute;top:0;left:0;right:0;height:5px;border-radius:6px 6px 0 0;
+  background:var(--stripe, var(--teal));
+}
+.face .door{
+  position:absolute;left:50%;top:14px;bottom:14px;width:1px;background:var(--border-strong);
+}
+.handle{position:absolute;width:5px;height:16px;background:var(--steel);border-radius:2px;top:50%;transform:translateY(-50%)}
+.handle.l{left:calc(50% - 12px)}
+.handle.r{left:calc(50% + 8px)}
+
+.box-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.box-code{font-family:var(--mono);font-size:10.5px;color:var(--text-3)}
+.light{width:9px;height:9px;border-radius:50%;background:var(--border-strong);flex-shrink:0;cursor:pointer;transition:background .15s,box-shadow .15s}
+.light.done{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+
+.box-mid{position:relative;z-index:1}
+.box-title{font-weight:700;font-size:15px;line-height:1.25}
+.box-kind{font-family:var(--mono);font-size:10.5px;color:var(--text-2);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.notion-badge{
+  font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:10px;border:1px solid var(--border-strong);
+  color:var(--text-3);text-transform:none;
+}
+.notion-badge.s-done{color:var(--teal);border-color:var(--teal-dim)}
+.notion-badge.s-in-progress{color:var(--amber);border-color:var(--amber-dim)}
+
+.box-bottom{display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1}
+.plate{font-family:var(--mono);font-size:10px;color:var(--text-3);border:1px solid var(--border);border-radius:3px;padding:2px 6px}
+.stepcount{font-family:var(--mono);font-size:10.5px;color:var(--text-2)}
+
+/* ---- Modal ---- */
+.overlay{
+  position:fixed;inset:0;background:rgba(3,7,6,0);z-index:50;display:none;
+  transition:background .28s ease;
+}
+.overlay.open{display:block;background:rgba(3,7,6,0.72)}
+.panel{
+  position:fixed;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;
+  overflow:hidden;transition:top .32s cubic-bezier(.2,.85,.3,1),left .32s cubic-bezier(.2,.85,.3,1),
+  width .32s cubic-bezier(.2,.85,.3,1),height .32s cubic-bezier(.2,.85,.3,1),border-radius .32s ease;
+  display:flex;flex-direction:column;z-index:51;
+}
+.panel-head{
+  padding:22px 26px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  flex-shrink:0;background:linear-gradient(180deg, rgba(63,199,154,0.06), transparent);
+}
+.panel-tag{font-family:var(--mono);font-size:11px;color:var(--teal);margin-bottom:6px}
+.panel-title{font-size:20px;font-weight:700}
+.panel-desc{color:var(--text-2);font-size:13.5px;margin-top:8px;max-width:560px}
+.close-btn{
+  flex-shrink:0;width:30px;height:30px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface-2);
+  color:var(--text-2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
+}
+.close-btn:hover{color:var(--text);border-color:var(--teal)}
+.panel-body{padding:22px 26px 34px;overflow-y:auto;flex:1}
+.panel-body::-webkit-scrollbar{width:7px}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border-strong);color:var(--text-2)}
+
+.steps{display:flex;flex-direction:column;gap:16px;margin-top:22px}
+.step{border:1px solid var(--border);border-radius:8px;background:var(--surface-2);padding:16px 18px}
+.step-top{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.step-n{font-family:var(--mono);font-size:12px;color:var(--teal);flex-shrink:0}
+.step-title{font-weight:600;font-size:14px}
+.step-body{color:var(--text-2);font-size:13.5px;margin-left:32px}
+.step-body p{margin-bottom:6px}
+
+pre.code{
+  margin-top:8px;position:relative;background:#080D0B;border:1px solid var(--border);
+  border-radius:8px;padding:12px 42px 12px 14px;overflow-x:auto;font-size:12px;font-family:var(--mono);
+  color:#C9E8DA;line-height:1.55;
+}
+.copy-btn{
+  position:absolute;top:8px;right:8px;background:var(--surface-2);border:1px solid var(--border-strong);
+  color:var(--text-2);font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:5px;cursor:pointer;
+}
+.copy-btn:hover{color:var(--text);border-color:var(--teal)}
+.copy-btn.copied{color:var(--teal);border-color:var(--teal)}
+
+.notion-status{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;padding:10px 14px;
+  border:1px solid var(--border);border-radius:8px;background:var(--surface-2);
+}
+.notion-meta{font-family:var(--mono);font-size:11.5px;color:var(--text-2)}
+.notion-link{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--teal)}
+
+.brief-box{
+  margin-top:20px;padding:14px 16px;border-radius:8px;border:1px solid var(--amber-dim);
+  background:linear-gradient(180deg, rgba(242,166,35,0.07), transparent);
+}
+.brief-label{font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:6px}
+.brief-box p{font-size:13px;color:var(--text-2);line-height:1.55}
+
+.doclinks{margin-top:22px}
+.doclink-list{display:flex;flex-wrap:wrap;gap:8px}
+.doclink{
+  font-family:var(--mono);font-size:12px;color:var(--teal);border:1px solid var(--border-strong);
+  border-radius:20px;padding:6px 12px;transition:border-color .15s,background .15s;
+}
+.doclink:hover{border-color:var(--teal);background:var(--surface-2)}
+
+.concepts{margin-top:26px}
+.concepts-label{font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:10px}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.concept{border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:11px 13px}
+.concept .k{font-weight:600;font-size:12.5px;margin-bottom:4px}
+.concept .v{font-size:12px;color:var(--text-2)}
+
+.mark-done{
+  margin-top:26px;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;
+  color:var(--text-2);cursor:pointer;border:1px solid var(--border-strong);border-radius:20px;padding:7px 14px;background:var(--surface-2);
+}
+.mark-done input{accent-color:var(--teal)}
+
+.outline-box{border:1px dashed var(--border-strong);border-radius:10px;padding:18px;color:var(--text-2);font-size:13.5px;margin-top:20px}
+.outline-box ul{margin:10px 0 0 18px}
+.outline-box li{margin-bottom:6px}
+
+footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3);font-size:12.5px;font-family:var(--mono)}
+
+@media (max-width:640px){
+  .wrap{padding:0 18px}
+  header{padding:40px 0 24px}
+}
+@media (prefers-reduced-motion: reduce){ .panel,.overlay{transition:none} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">EasyTrade lab · Dynatrace Associate bootcamp</div>
+    <h1>The container yard</h1>
+    <p class="sub">Every piece of the lab, laid out as a real yard: the infrastructure that carries the data, and the fourteen days that built on top of it. Click a container to open it.</p>
+    <div class="instruction"><span class="k">click</span> any box to open it · <span class="k">esc</span> to close</div>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-filter="all">All containers</button>
+    <button class="tab" data-filter="infra">Infrastructure</button>
+    <button class="tab" data-filter="day">Bootcamp days</button>
+  </div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--teal)"></i>Infrastructure — how data moves</span>
+    <span><i class="sw" style="background:var(--amber)"></i>Bootcamp day — what you configured</span>
+  </div>
+
+  <div class="progress-strip">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">0 / 0 opened &amp; marked done</div>
+  </div>
+
+  <div class="yard" id="yard"></div>
+
+  <footer>The container yard · EasyTrade lab, Dynatrace Associate bootcamp · progress saved locally in this browser</footer>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="panel" id="panel" style="display:none">
+  <div class="panel-head">
+    <div>
+      <div class="panel-tag" id="panel-tag"></div>
+      <div class="panel-title" id="panel-title"></div>
+      <div class="panel-desc" id="panel-desc"></div>
+      <div class="chips" id="panel-chips"></div>
+    </div>
+    <button class="close-btn" id="close-btn" aria-label="Close">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script>
+const NODES = [
+{ id:'host', kind:'infra', code:'YARD-00 · HOST', title:'EasyTrade host (Kali)', note:'The machine everything else stands on. One VM running Docker, 15+ EasyTrade containers, and later OneAgent itself.',
+  concepts:[
+    {k:'Bring it up', v:'`docker compose up -d` from the easytrade folder — clone from github.com/Dynatrace/easytrade first.'},
+    {k:'Reach it from outside', v:'Bridged network adapter + the VM\'s own LAN IP (`ip a show eth0`), not 127.0.0.1.'},
+    {k:'DHCP drops', v:'A VM can silently lose its IPv4 lease — `sudo dhclient -r eth0 && sudo dhclient eth0` renews it.'},
+    {k:'CPU pressure', v:'Cap noisy containers with a `compose.override.yaml` `deploy.resources.limits.cpus` rather than stopping them.'},
+  ],
+  links:[{l:'Docker Compose — overview', u:'https://docs.docker.com/compose/'}]},
+{ id:'oneagent-infra', kind:'infra', code:'YARD-01 · AGENT', title:'OneAgent', note:'One per host. Injects into every process it finds, so it sees hosts, processes and — in Full-Stack mode — services and traces.',
+  concepts:[
+    {k:'Full-Stack install', v:'`sudo /bin/sh Dynatrace-OneAgent-Linux-*.sh --set-monitoring-mode=fullstack --set-app-log-content-access=true`'},
+    {k:'Kali workaround', v:'Add `SKIP_OS_SUPPORT_CHECK=true` — Kali isn\'t officially supported but is Debian-based and usually works.'},
+    {k:'Host group', v:'`oneagentctl --set-host-group=<name> --restart-service` — powers later tagging and naming rules.'},
+    {k:'Outbound port', v:'9999 (or 443) to its ActiveGate. Restart EasyTrade after install so new containers get injected.'},
+  ],
+  links:[
+    {l:'Install OneAgent on Linux', u:'https://docs.dynatrace.com/docs/shortlink/oneagent-linux-install'},
+    {l:'OneAgent monitoring modes', u:'https://docs.dynatrace.com/docs/shortlink/oneagent-monitoring-modes'},
+  ]},
+{ id:'activegate', kind:'infra', code:'YARD-02 · GATE', title:'ActiveGate', note:'Routes and buffers OneAgent traffic to the cluster, runs synthetic checks, and polls the Kubernetes API for cluster monitoring.',
+  concepts:[
+    {k:'Where it lives', v:'Its own VM — not the same box as EasyTrade. Avoids resource contention and repeating the Kali OS-support fight.'},
+    {k:'Port', v:'HTTPS 443 outbound to the Dynatrace cluster; OneAgents reach it on 9999.'},
+    {k:'Network zones', v:'`oneagentctl --set-network-zone=<zone>` makes a OneAgent prefer ActiveGates in the same zone.'},
+    {k:'What it unlocks', v:'Private synthetic locations (Day 11) and the K8s Operator\'s own ActiveGate (Day 12) both need one.'},
+  ],
+  links:[
+    {l:'ActiveGate — overview', u:'https://docs.dynatrace.com/docs/shortlink/activegate-hub'},
+    {l:'Network zones', u:'https://docs.dynatrace.com/docs/shortlink/network-zones'},
+  ]},
+{ id:'cluster', kind:'infra', code:'YARD-03 · CLUSTER', title:'Dynatrace cluster', note:'Authenticates incoming data, runs it through an ingestion pipeline that enriches it with tags and entity IDs, and hands it to Davis AI and Grail.',
+  concepts:[
+    {k:'Enrichment', v:'This is where your host group and `project:easytrade` tags actually get attached to incoming data.'},
+    {k:'Davis AI', v:'Continuously reads correlated data to detect problems — baselining is auto-adaptive, seasonal, or a static threshold you set.'},
+    {k:'SaaS vs Managed', v:'Same pipeline concept; Managed runs the cluster on your own infrastructure instead of Dynatrace\'s.'},
+  ],
+  links:[
+    {l:'Root cause analysis', u:'https://docs.dynatrace.com/docs/shortlink/root-cause-analysis'},
+    {l:'Automated baselining', u:'https://docs.dynatrace.com/docs/shortlink/automated-baselining'},
+  ]},
+{ id:'grail', kind:'infra', code:'YARD-04 · GRAIL', title:'Grail storage', note:'The data lakehouse. Logs, metrics, traces, events, business events and entities, all schema-on-read, queried with DQL.',
+  concepts:[
+    {k:'Load', v:'`fetch logs` / `fetch spans` / `fetch bizevents` load records. `timeseries avg(dt.host.cpu.usage), by:{dt.entity.host}` loads metrics.'},
+    {k:'Shape', v:'`filter` narrows rows, `summarize` aggregates, `parse` extracts a field from raw text, `fields`/`fieldsAdd` pick columns.'},
+    {k:'Buckets & retention', v:'Data lives in typed buckets with their own retention — this is why ingest filtering matters for cost.'},
+  ],
+  links:[
+    {l:'Grail', u:'https://docs.dynatrace.com/docs/shortlink/grail'},
+    {l:'Dynatrace Query Language — hub', u:'https://docs.dynatrace.com/docs/shortlink/dql-dynatrace-query-language-hub'},
+  ]},
+{ id:'setup', kind:'day', code:'DAY-00', title:'Lab setup', note:'Docker CE + Compose plugin on Kali, EasyTrade cloned and running, ready for OneAgent.', chips:['Docker Compose','Kali Linux'],
+  steps:[
+    {t:'Install Docker CE and the Compose plugin', b:'Kali\'s own repo doesn\'t reliably ship Compose v2, so pull from Docker\'s Debian repo (bookworm works on Kali).',
+      code:'sudo apt update\nsudo apt install -y ca-certificates curl gnupg\nsudo install -m 0755 -d /etc/apt/keyrings\ncurl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg\necho "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | sudo tee /etc/apt/sources.list.d/docker.list\nsudo apt update\nsudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin\nsudo systemctl enable --now docker\nsudo usermod -aG docker $USER && newgrp docker'},
+    {t:'Clone and start EasyTrade', b:'',
+      code:'git clone https://github.com/Dynatrace/easytrade.git\ncd easytrade\ndocker compose up -d\ndocker compose ps'},
+    {t:'Cap the noisy containers', b:'third-party-service and the load generator run hot on a single VM.',
+      code:'# compose.override.yaml\nservices:\n  third-party-service:\n    deploy:\n      resources:\n        limits:\n          cpus: "0.5"'},
+  ],
+  concepts:[{k:'Bridged networking', v:'Gives the VM its own LAN IP so the parent machine can reach EasyTrade.'}],
+  links:[{l:'Docker Compose — overview', u:'https://docs.docker.com/compose/'}]},
+{ id:'oneagent-day', kind:'day', code:'DAY-00B', title:'Installing OneAgent', note:'Get Full-Stack monitoring running on an officially unsupported OS.', chips:['Full-Stack','Kali workaround'],
+  steps:[
+    {t:'Run the installer, skipping the OS check', b:'',
+      code:'sudo /bin/sh Dynatrace-OneAgent-Linux-*.sh \\\n  SKIP_OS_SUPPORT_CHECK=true \\\n  --set-monitoring-mode=fullstack \\\n  --set-app-log-content-access=true'},
+    {t:'Verify, then restart EasyTrade so it gets instrumented', b:'',
+      code:'sudo systemctl status oneagent\nsudo /opt/dynatrace/oneagent/agent/tools/oneagentctl --get-server\ndocker compose down && docker compose up -d'},
+    {t:'If a host shows "monitoring unavailable"', b:'Almost always a lost network connection.',
+      code:'ip a show eth0 | grep "inet "\ncurl -v https://<your-env-id>.live.dynatrace.com\nsudo systemctl restart oneagent'},
+  ],
+  concepts:[{k:'Host group', v:'`oneagentctl --set-host-group=<name> --restart-service`'}],
+  links:[{l:'Install OneAgent on Linux', u:'https://docs.dynatrace.com/docs/shortlink/oneagent-linux-install'}]},
+{ id:'day1-2', kind:'day', code:'DAY-01', title:'Foundations & Smartscape', note:'The architecture and the five-layer topology map.', chips:['Architecture','Monitoring modes'],
+  steps:[
+    {t:'Walk Smartscape top to bottom', b:'Host → processes → services → application, for EasyTrade specifically.'},
+    {t:'Switch monitoring modes and note what disappears', b:'Full-Stack → Infrastructure → Discovery. Services and traces vanish first, then most metrics.'},
+    {t:'Know process vs service', b:'A process is a running executable — visible even in Infrastructure mode. A service is a request-handling endpoint, detected by code-level injection — Full-Stack only.'},
+  ],
+  concepts:[
+    {k:'Host vs data center', v:'A host is one monitored OS instance. A data center is the location/grouping above it — often empty on a bare VM.'},
+    {k:'Smartscape', v:'Data center → host → process → service → application.'},
+  ],
+  brief:'Practitioners modules 1–3 are the orientation stretch: what Dynatrace is versus traditional monitoring, the platform\'s app-based structure, and the topology model Smartscape visualizes.',
+  links:[
+    {l:'Dynatrace platform — overview', u:'https://docs.dynatrace.com/docs/shortlink/dynatrace-platform'},
+    {l:'Smartscape topology', u:'https://docs.dynatrace.com/docs/shortlink/smartscape-topology-hub'},
+  ]},
+{ id:'day3-4', kind:'day', code:'DAY-02', title:'Real user monitoring', note:'User tagging, key actions, session replay and a USQL funnel.', chips:['RUM','USQL'],
+  steps:[
+    {t:'Find the username in the app first', b:'DevTools → Network → the login call\'s response, or Local/Session storage.'},
+    {t:'User tagging → key user actions → conversion goal', b:'Session properties and user tagging, then Key user actions, then a "Trade completed" conversion goal on it.'},
+    {t:'Build a USQL funnel', b:'',
+      code:'SELECT FUNNEL(\n  useraction.name = "loading of page /login" AS "Login",\n  useraction.name = "click on Buy" AS "Buy"\n) FROM usersession'},
+  ],
+  concepts:[
+    {k:'Session vs action property', v:'Session property = true for the whole session. Action property = tied to one action.'},
+    {k:'Waterfall', v:'Per-action breakdown of every resource load.'},
+  ],
+  brief:'Practitioners module 4 (DEM & Business Analytics) introduces RUM, synthetic and mobile monitoring together, and how business-level metrics layer on top of raw performance data.',
+  links:[
+    {l:'Real User Monitoring — overview', u:'https://docs.dynatrace.com/docs/shortlink/rum-injection'},
+    {l:'Session properties and user tagging', u:'https://docs.dynatrace.com/docs/shortlink/user-session-properties'},
+  ]},
+{ id:'day5-6', kind:'day', code:'DAY-03', title:'Problems, Davis AI & alerting', note:'Threshold alerts on CPU/memory/disk, then a workflow that emails you.', chips:['Baselining','Workflows'],
+  steps:[
+    {t:'Maintenance window + test', b:'',
+      code:'docker compose stop third-party-service\n# check Problems for suppression, then:\ndocker compose start third-party-service'},
+    {t:'Six threshold alerts (DQL-based in Gen3)', b:'CPU/memory/disk × 45% warning / 60% critical.',
+      code:'timeseries cpu = avg(dt.host.cpu.usage), by:{dt.entity.host}\n| fieldsAdd alert_condition = cpu[] > 45'},
+    {t:'Workflow instead of an alerting profile', b:'Trigger: Davis problem, new problems. Action: send email.',
+      code:'Subject: Dynatrace problem: {{ event()[\'display_id\'] }} - {{ event()[\'event.name\'] }}'},
+  ],
+  concepts:[
+    {k:'Baselining types', v:'Auto-adaptive, seasonal, static threshold.'},
+    {k:'Alerting profile → Workflow', v:'Gen3 replaces the profile + notification pair with a Davis-problem-triggered workflow.'},
+  ],
+  brief:'Practitioners module 7 (Problem detection & analysis) covers how Davis correlates anomalies into one problem, root cause vs symptom, and the problem evolution player — the theory behind this day\'s RCA work, and it returns directly on Day 14.',
+  links:[
+    {l:'Root cause analysis', u:'https://docs.dynatrace.com/docs/shortlink/root-cause-analysis'},
+    {l:'Automated baselining', u:'https://docs.dynatrace.com/docs/shortlink/automated-baselining'},
+    {l:'Maintenance windows', u:'https://docs.dynatrace.com/docs/shortlink/maintenance-window'},
+  ]},
+{ id:'day7', kind:'day', code:'DAY-04', title:'Tagging & segments', note:'Consistent tags on hosts and services, scoped with a segment.', chips:['Tagging','Segments'],
+  steps:[
+    {t:'Tag via environment variable', b:'OneAgent reads DT_TAGS straight from the container environment.',
+      code:'# compose.override.yaml\nservices:\n  third-party-service:\n    environment:\n      - DT_TAGS=project=easytrade env=lab tier=external'},
+    {t:'Build a segment', b:'Settings → Environment segmentation → Segments.',
+      code:'fetch dt.entity.host\n| filter matchesValue(tags, "project:easytrade")'},
+  ],
+  concepts:[
+    {k:'Tag vs metadata', v:'A tag is applied by you to filter/group; metadata is auto-detected.'},
+    {k:'Management zone → 3 concepts', v:'Data filtering → Segments. Access control → IAM policies. Data organization → Data partitioning.'},
+  ],
+  brief:'Practitioners module 5 (Log Management & Analytics) covers OneAgent log auto-discovery, ingest rules, processing/metric extraction, and querying logs with DQL — the conceptual backing for this day\'s tagging and log-metric work.',
+  links:[
+    {l:'Log monitoring — overview', u:'https://docs.dynatrace.com/docs/shortlink/log-monitoring-hub'},
+    {l:'Automatically applied tags', u:'https://docs.dynatrace.com/docs/shortlink/automatically-applied-tags'},
+  ]},
+{ id:'day8', kind:'day', code:'DAY-05', title:'Network zones, custom service & AppSec', note:'Fill the gaps auto-detection leaves; turn on vulnerability detection.', chips:['Custom service','AppSec'],
+  steps:[
+    {t:'Network zone', b:'',
+      code:'sudo /opt/dynatrace/oneagent/agent/tools/oneagentctl --set-network-zone=easytrade-lab --restart-service'},
+    {t:'Custom service + request attribute', b:'Find a class + method from a trace\'s code-level view; capture a value like account ID from a request.'},
+    {t:'Application Security', b:'Enable third-party and code-level vulnerability detection; test attack protection only against your own EasyTrade.'},
+  ],
+  concepts:[{k:'Third-party vs code-level vulns', v:'Third-party = library CVEs. Code-level = flaws in your own code.'}],
+  brief:'Deploying Dynatrace: last 9 modules is the deepest self-learning block in the bootcamp — Grail\'s bucket/table structure, permissions in Grail, and the Settings 2.0 model underneath everything you\'ve clicked through since Day 7.',
+  links:[
+    {l:'Grail — data model', u:'https://docs.dynatrace.com/docs/shortlink/grail'},
+    {l:'Application Security — vulnerabilities', u:'https://docs.dynatrace.com/docs/shortlink/application-security-vulnerabilities'},
+  ]},
+{ id:'day9', kind:'day', code:'DAY-06', title:'Grail & DQL', note:'One lakehouse, queried with a pipeline of commands.', chips:['DQL','Grail'],
+  steps:[
+    {t:'Load and filter', b:'',
+      code:'fetch logs, from:now()-1h\n| filter loglevel == "ERROR"\n| fields timestamp, loglevel, content\n| sort timestamp desc\n| limit 50'},
+    {t:'Aggregate', b:'',
+      code:'fetch logs, from:now()-24h\n| summarize count(), by:{loglevel}\n| sort `count()` desc'},
+    {t:'Parse fields out of raw text', b:'',
+      code:'fetch logs\n| parse content, "LD \'user=\' WORD:user"\n| summarize count(), by:{user}'},
+  ],
+  concepts:[{k:'fields vs fieldsAdd', v:'`fields` keeps only named columns; `fieldsAdd` creates a new one without dropping the rest.'}],
+  brief:'The DQL learning plan is the full language reference in course form: commands (fetch, filter, summarize, parse, join, lookup), the difference between records and time series, and worked examples across logs, metrics, business events and security data.',
+  links:[
+    {l:'Dynatrace Query Language — hub', u:'https://docs.dynatrace.com/docs/shortlink/dql-dynatrace-query-language-hub'},
+    {l:'Grail', u:'https://docs.dynatrace.com/docs/shortlink/grail'},
+  ]},
+{ id:'day10', kind:'day', code:'DAY-07', title:'APIs & integrations', note:'Turn an access token into a working problem exporter, then wire up Slack or Jira.', chips:['API','Python'],
+  steps:[
+    {t:'Create an access token', b:'Settings → Access tokens. Scope: problems.read at minimum.'},
+    {t:'Pull problems with curl', b:'',
+      code:'export DT_ENV="https://<your-env-id>.live.dynatrace.com"\nexport DT_TOKEN="<token>"\ncurl -s -H "Authorization: Api-Token $DT_TOKEN" \\\n  "$DT_ENV/api/v2/problems?from=now-7d" | jq .'},
+    {t:'Build the Python problem exporter', b:'',
+      code:'import os, requests, csv\n\nenv = os.environ["DT_ENV"]\ntoken = os.environ["DT_TOKEN"]\nr = requests.get(f"{env}/api/v2/problems",\n                 headers={"Authorization": f"Api-Token {token}"},\n                 params={"from": "now-7d"})\nr.raise_for_status()\nwith open("problems.csv", "w", newline="") as f:\n    w = csv.writer(f)\n    w.writerow(["displayId", "title", "severity", "status"])\n    for p in r.json().get("problems", []):\n        w.writerow([p["displayId"], p["title"], p["severityLevel"], p["status"]])'},
+    {t:'Slack or Jira integration', b:'Add a Slack/Jira action to your existing workflow alongside the email action; test with the same CPU-load trigger from Day 5–6.'},
+  ],
+  concepts:[
+    {k:'Environment API vs Config API', v:'/api/v2/... reads monitoring data. /api/config/v1/... manages configuration. Same Api-Token header, different scopes.'},
+  ],
+  brief:'Practitioners final quiz introduces no new material — it checks everything the course covered: architecture, topology, DEM, log management, problem detection, and analysing monitoring data.',
+  links:[
+    {l:'Dynatrace API — overview', u:'https://docs.dynatrace.com/docs/shortlink/dynatrace-api'},
+    {l:'Access tokens', u:'https://docs.dynatrace.com/docs/shortlink/api-authentication'},
+  ]},
+{ id:'day11', kind:'day', code:'DAY-08', title:'Business events & synthetics', note:'Turn a trade into structured, queryable data — then monitor EasyTrade from the outside.', chips:['Business events','Synthetic'],
+  steps:[
+    {t:'Business event capture rule', b:'Source it from the trade request in EasyTrade\'s API, mapping amount/symbol/type from the JSON body.'},
+    {t:'Query it', b:'',
+      code:'fetch bizevents\n| filter event.type == "easytrade.trade"\n| summarize count(), avg(amount), by:{symbol}'},
+    {t:'Private synthetic location', b:'Public locations can\'t reach a private IP — host one on your own ActiveGate instead.'},
+    {t:'HTTP monitor + browser clickpath', b:'Both run against your EasyTrade URL through the private location — record a login-then-trade flow for the clickpath.'},
+  ],
+  concepts:[
+    {k:'Security Investigator', v:'Walks a detected attack\'s payload, code location and risk assessment — the same view used after a real incident.'},
+  ],
+  brief:'Business Analytics covers business events end to end: how they differ from logs/metrics, capture rules, and using them in dashboards. Synthetic Monitoring covers monitor types, public vs private locations, and how results feed problem detection.',
+  links:[
+    {l:'Business events', u:'https://docs.dynatrace.com/docs/shortlink/business-events'},
+    {l:'Synthetic — private locations', u:'https://docs.dynatrace.com/docs/shortlink/synthetic-private-locations'},
+  ]},
+{ id:'day12', kind:'day', code:'DAY-09', title:'Kubernetes & workflows', note:'Deploy the Dynatrace Operator, then put EasyTrade on a cluster instead of Compose.', chips:['Kubernetes','Operator'],
+  steps:[
+    {t:'Stop EasyTrade, spin up a local cluster', b:'',
+      code:'cd ~/easytrade && docker compose stop\nkind create cluster --name easytrade-k8s\nkubectl get nodes'},
+    {t:'Deploy Dynatrace Operator', b:'',
+      code:'kubectl create namespace dynatrace\nhelm install dynatrace-operator oci://public.ecr.aws/dynatrace/dynatrace-operator \\\n  --create-namespace --namespace dynatrace --atomic'},
+    {t:'Apply a DynaKube (cloudNativeFullStack)', b:'',
+      code:'kubectl apply -f your-dynakube.yaml\nkubectl get dynakube -n dynatrace'},
+    {t:'Deploy EasyTrade\'s Kubernetes manifests', b:'',
+      code:'kubectl apply -f k8s/\nkubectl get pods'},
+    {t:'Map the entity hierarchy', b:'cluster → namespace → node → workload → pod — same layered idea as Smartscape, one level more granular.'},
+  ],
+  concepts:[
+    {k:'DynaKube modes', v:'cloudNativeFullStack (host + auto injection), applicationMonitoring (app pods only), hostMonitoring (infra only), classicFullStack (legacy DaemonSet).'},
+  ],
+  brief:'The Kubernetes learning plan covers why Dynatrace Operator replaced manual DaemonSets, the DynaKube custom resource and its monitoring modes, the CSI driver\'s role in injection, and how K8s-native signals feed Davis AI.',
+  links:[
+    {l:'Kubernetes observability — overview', u:'https://docs.dynatrace.com/docs/shortlink/kubernetes'},
+    {l:'Deployment options for Kubernetes', u:'https://docs.dynatrace.com/docs/shortlink/installation-k8s'},
+  ]},
+{ id:'day13', kind:'day', code:'DAY-10', title:'OpenPipeline, Notebooks & advanced AppSec', note:'Where data gets processed before Grail, plus muting and alerting on vulnerabilities.', chips:['OpenPipeline','Notebooks','AppSec'],
+  steps:[
+    {t:'OpenPipeline processing rule', b:'',
+      code:'fetch logs\n| filter loglevel == "ERROR"\n| parse content, "LD \'code=\' INT:error_code"'},
+    {t:'Notebook', b:'A DQL cell plus a markdown cell explaining it in your own words — writing the explanation is the real exam prep.'},
+    {t:'Dashboard', b:'Pin your USQL funnel, your metric-event chart, and a query from this notebook onto one dashboard.'},
+    {t:'Davis anomaly detector', b:'Build one more, this time with auto-adaptive baselining instead of a static threshold.'},
+    {t:'AppSec — mute and alert', b:'Mute a Day 8 vulnerability with a reason (false positive / risk accepted / fixing planned); add an alert for new high-risk vulnerabilities.'},
+  ],
+  concepts:[
+    {k:'OpenPipeline', v:'Where incoming data is processed/transformed before it lands in Grail — this is where your log metric was actually built.'},
+  ],
+  brief:'The Security Analytics learning plan covers Application Security end to end: third-party vs code-level detection, Runtime Application Protection, and how security events flow into the same Davis/problem pipeline as performance issues.',
+  links:[
+    {l:'OpenPipeline — overview', u:'https://docs.dynatrace.com/docs/shortlink/openpipeline'},
+    {l:'Application Security — vulnerabilities', u:'https://docs.dynatrace.com/docs/shortlink/application-security-vulnerabilities'},
+  ]},
+{ id:'day14', kind:'day', code:'DAY-11', title:'Final analysis day', note:'With a problem active, find the slow method yourself — then compare with Davis.', chips:['Root cause','Profiling'],
+  steps:[
+    {t:'Trigger a real problem', b:'', code:'docker exec -it easytrade-third-party-service-1 sh -c "yes > /dev/null &"'},
+    {t:'Find it yourself first', b:'In order: CPU/memory profiling → distributed traces → service flow → backtrace → response-time hotspots → logs. Write down what you find before opening the root cause section.'},
+    {t:'Compare with Davis\'s root cause', b:'If Davis found something faster, understand why — usually a signal you didn\'t think to check.'},
+    {t:'Clean up', b:'', code:'docker exec -it easytrade-third-party-service-1 pkill yes'},
+  ],
+  concepts:[
+    {k:'Best exam prep artifact', v:'The problem-investigation table in the Lab Notebook — hardest skill to fake if you haven\'t actually practiced it.'},
+  ],
+  brief:'No fixed module — this day is exploratory. It pairs best with Day 5\'s Problem detection & analysis module, since this is that module put into practice by hand instead of read from a page.',
+  links:[
+    {l:'Root cause analysis', u:'https://docs.dynatrace.com/docs/shortlink/root-cause-analysis'},
+    {l:'Distributed tracing', u:'https://docs.dynatrace.com/docs/shortlink/distributed-tracing'},
+  ]},
+];
+
+// ---- Progress (local, per-browser: which containers you've opened) ----
+const STORAGE_KEY = 'easytrade-yard-progress';
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ return {}; } }
+function saveProgress(p){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }catch(e){} }
+let progress = loadProgress();
+
+function updateProgressStrip(){
+  const done = Object.values(progress).filter(Boolean).length;
+  const total = NODES.length;
+  document.getElementById('progress-fill').style.width = total ? (done/total*100)+'%' : '0%';
+  document.getElementById('progress-text').textContent = `${done} / ${total} opened & marked done`;
+}
+
+// ---- Notion Daily Tracker as the real database ----
+// data.json is a plain export of the "Daily Tracker" Notion database. Regenerate it whenever
+// the tracker changes (see README) — this file makes no live network call to Notion itself.
+const DAY_TO_NODE = {
+  'Day 01':'day1-2', 'Day 02':'day1-2', 'Day 03':'day3-4', 'Day 04':'day3-4',
+  'Day 05':'day5-6', 'Day 06':'day5-6', 'Day 07':'day7', 'Day 08':'day8',
+  'Day 09':'day9', 'Day 10':'day10', 'Day 11':'day11', 'Day 12':'day12',
+  'Day 13':'day13', 'Day 14':'day14',
+};
+let NOTION = {}; // nodeId -> { labDone, status, assessments:[], url, rows:[...] }
+
+async function loadNotionData(){
+  try{
+    const res = await fetch('data.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('no data.json');
+    const json = await res.json();
+    const byNode = {};
+    (json.days||[]).forEach(row=>{
+      const nodeId = DAY_TO_NODE[row.day];
+      if(!nodeId) return;
+      if(!byNode[nodeId]) byNode[nodeId] = {rows:[], labDoneAll:true, anyStarted:false, assessments:[], url:row.url};
+      const g = byNode[nodeId];
+      g.rows.push(row);
+      if(!row.labDone) g.labDoneAll = false;
+      if(row.labDone || row.sessionAttended || row.modulesDone) g.anyStarted = true;
+      if(row.assessment && row.assessment !== 'None') g.assessments.push(row.assessment);
+    });
+    Object.keys(byNode).forEach(id=>{
+      const g = byNode[id];
+      g.status = g.labDoneAll ? 'Done' : (g.anyStarted ? 'In progress' : 'Not started');
+    });
+    NOTION = byNode;
+  }catch(e){
+    // Static file, no server (opened via file://), or data.json missing — the yard still
+    // works fully on local progress alone, it just won't show Notion status badges.
+    NOTION = {};
+  }
+}
+
+// ---- Render yard ----
+const yard = document.getElementById('yard');
+function renderYard(){
+NODES.forEach((n, i) => {
+  const box = document.createElement('div');
+  box.className = 'container-box';
+  box.dataset.kind = n.kind;
+  box.dataset.id = n.id;
+  box.style.animationDelay = (i * 0.05) + 's';
+  const stripeVar = n.kind === 'infra' ? 'var(--teal)' : 'var(--amber)';
+  const count = n.steps ? n.steps.length : (n.outline ? n.outline.length : (n.concepts||[]).length);
+  const unit = n.steps ? 'steps' : (n.outline ? 'planned' : 'notes');
+  const nd = NOTION[n.id];
+  const notionBadge = nd ? `<span class="notion-badge s-${nd.status.replace(/\s+/g,'-').toLowerCase()}" title="Notion tracker status">${nd.status}</span>` : '';
+  box.innerHTML = `
+    <div class="face" style="--stripe:${stripeVar}">
+      <div class="door"></div>
+      <div class="handle l"></div>
+      <div class="handle r"></div>
+      <div class="box-top">
+        <span class="box-code">${n.code}</span>
+        <span class="light" data-light="${n.id}" title="Mark opened"></span>
+      </div>
+      <div class="box-mid">
+        <div class="box-title">${n.title}</div>
+        <div class="box-kind">${n.kind === 'infra' ? 'infrastructure' : 'bootcamp day'}${notionBadge}</div>
+      </div>
+      <div class="box-bottom">
+        <span class="plate">${n.kind.toUpperCase()}</span>
+        <span class="stepcount">${count} ${unit}</span>
+      </div>
+    </div>
+  `;
+  box.addEventListener('click', (e) => {
+    if (e.target.dataset.light) return;
+    openPanel(n, box);
+  });
+  yard.appendChild(box);
+});
+}
+
+function wireLights(){
+  document.querySelectorAll('[data-light]').forEach(light => {
+    light.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = light.dataset.light;
+      progress[id] = !progress[id];
+      saveProgress(progress);
+      light.classList.toggle('done', !!progress[id]);
+      updateProgressStrip();
+    });
+    if (progress[light.dataset.light]) light.classList.add('done');
+  });
+  updateProgressStrip();
+}
+
+// ---- Init: load the Notion tracker export first, then build the yard ----
+loadNotionData().then(() => {
+  renderYard();
+  wireLights();
+});
+
+// ---- Filters ----
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('.container-box').forEach(box => {
+      box.classList.toggle('hidden', filter !== 'all' && box.dataset.kind !== filter);
+    });
+  });
+});
+
+// ---- Modal open/close with genie animation from the clicked box ----
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+let lastRect = null;
+let currentBox = null;
+
+function escapeHtml(str){ return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderPanelContent(n){
+  document.getElementById('panel-tag').textContent = n.code;
+  document.getElementById('panel-title').textContent = n.title;
+  document.getElementById('panel-desc').textContent = n.note || '';
+  document.getElementById('panel-chips').innerHTML = (n.chips||[]).map(c=>`<span class="chip">${c}</span>`).join('');
+
+  let body = '';
+  const nd = NOTION[n.id];
+  if (nd) {
+    const doneCount = nd.rows.filter(r=>r.labDone).length;
+    body += `<div class="notion-status">
+      <span class="notion-badge s-${nd.status.replace(/\s+/g,'-').toLowerCase()}">${nd.status}</span>
+      <span class="notion-meta">${doneCount}/${nd.rows.length} lab${nd.rows.length>1?'s':''} done in Notion${nd.assessments.length?` · ${nd.assessments.join(', ')}`:''}</span>
+      ${nd.url?`<a href="${nd.url}" target="_blank" rel="noopener" class="notion-link">open in Notion ↗</a>`:''}
+    </div>`;
+  }
+  if (n.brief) {
+    body += `<div class="brief-box"><div class="brief-label">Practitioner module brief</div><p>${n.brief}</p></div>`;
+  }
+  if (n.steps) {
+    body += '<div class="steps">' + n.steps.map((s,i)=>`
+      <div class="step">
+        <div class="step-top"><span class="step-n">${String(i+1).padStart(2,'0')}</span><span class="step-title">${s.t}</span></div>
+        <div class="step-body">${s.b?`<p>${s.b}</p>`:''}${s.code?`<pre class="code">${escapeHtml(s.code)}<button class="copy-btn" onclick="copyCode(this)">copy</button></pre>`:''}</div>
+      </div>`).join('') + '</div>';
+  } else if (n.outline) {
+    body += `<div class="outline-box"><strong style="color:var(--text)">Planned</strong><ul>${n.outline.map(o=>`<li>${o}</li>`).join('')}</ul></div>`;
+  }
+  if (n.concepts) {
+    body += `<div class="concepts"><div class="concepts-label">Worth remembering</div>
+      <div class="concept-grid">${n.concepts.map(c=>`<div class="concept"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('')}</div></div>`;
+  }
+  if (n.links) {
+    body += `<div class="doclinks"><div class="concepts-label">Official Dynatrace docs</div>
+      <div class="doclink-list">${n.links.map(x=>`<a href="${x.u}" target="_blank" rel="noopener" class="doclink">${x.l} ↗</a>`).join('')}</div></div>`;
+  }
+  body += `<label class="mark-done"><input type="checkbox" id="panel-mark" ${progress[n.id]?'checked':''}> mark this container opened</label>`;
+  document.getElementById('panel-body').innerHTML = body;
+
+  document.getElementById('panel-mark').addEventListener('change', (e) => {
+    progress[n.id] = e.target.checked;
+    saveProgress(progress);
+    const light = document.querySelector(`[data-light="${n.id}"]`);
+    if (light) light.classList.toggle('done', e.target.checked);
+    updateProgressStrip();
+  });
+}
+
+function openPanel(n, boxEl){
+  currentBox = boxEl;
+  lastRect = boxEl.getBoundingClientRect();
+  renderPanelContent(n);
+
+  panel.style.display = 'flex';
+  panel.style.top = lastRect.top + 'px';
+  panel.style.left = lastRect.left + 'px';
+  panel.style.width = lastRect.width + 'px';
+  panel.style.height = lastRect.height + 'px';
+  panel.style.borderRadius = '6px';
+  panel.style.transition = 'none';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  requestAnimationFrame(() => {
+    panel.style.transition = '';
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const w = Math.min(760, vw * 0.92);
+    const h = vh * 0.86;
+    panel.style.top = (vh - h) / 2 + 'px';
+    panel.style.left = (vw - w) / 2 + 'px';
+    panel.style.width = w + 'px';
+    panel.style.height = h + 'px';
+    panel.style.borderRadius = '12px';
+  });
+}
+
+function closePanel(){
+  if (!lastRect) { panel.style.display='none'; overlay.classList.remove('open'); return; }
+  panel.style.top = lastRect.top + 'px';
+  panel.style.left = lastRect.left + 'px';
+  panel.style.width = lastRect.width + 'px';
+  panel.style.height = lastRect.height + 'px';
+  panel.style.borderRadius = '6px';
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => { panel.style.display = 'none'; }, 320);
+}
+
+document.getElementById('close-btn').addEventListener('click', closePanel);
+overlay.addEventListener('click', closePanel);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.style.display !== 'none') closePanel(); });
+
+function copyCode(btn){
+  const pre = btn.parentElement;
+  const text = pre.textContent.replace('copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = 'copied'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='copy'; btn.classList.remove('copied'); }, 1400);
+  });
+}
+</script>
+</body>
+</html>

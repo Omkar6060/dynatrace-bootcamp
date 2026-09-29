@@ -1,0 +1,20 @@
+{
+  "source": "Notion — Dynatrace Associate Training / Daily Tracker",
+  "generated": "2026-09-29",
+  "days": [
+    {"day":"Day 01","topic":"Dynatrace Basics: Introduction & Architecture","status":"Not started","labDone":true,"sessionAttended":true,"modulesDone":true,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881c6a732de61770b3c6a"},
+    {"day":"Day 02","topic":"Full Stack Monitoring & Smartscape","status":"Not started","labDone":true,"sessionAttended":true,"modulesDone":true,"assessment":"Assessment 1","confidence":"High","url":"https://app.notion.com/p/3e4c9faf9f7881d385d2c5f727bb5531"},
+    {"day":"Day 03","topic":"Real User Monitoring","status":"Not started","labDone":true,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f78814c83f0da2e5f0030bd"},
+    {"day":"Day 04","topic":"Real User Monitoring (config)","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"Assessment 2","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f78814e80f7fe87b0b6e38c"},
+    {"day":"Day 05","topic":"Problem Detection & AI","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f788187b4e7ed4ec0a778ef"},
+    {"day":"Day 06","topic":"Problem Detection & AI (RCA + alerting)","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"Assessment 3","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881cc9ceaf9c047fe58a3"},
+    {"day":"Day 07","topic":"Basic Configurations","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881bea716ffa94c0eec00"},
+    {"day":"Day 08","topic":"Advanced Configuration","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"Assessment 4","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f78818e823fcdd240b7cadb"},
+    {"day":"Day 09","topic":"Grail / DQL","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881be8e99c3930db532ed"},
+    {"day":"Day 10","topic":"Advanced Integrations","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"Assessment 5","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881b099cdfc6d89557464"},
+    {"day":"Day 11","topic":"Business Events, Security Investigator, Synthetic","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f788164bbfaf94f0fa7a728"},
+    {"day":"Day 12","topic":"Kubernetes, Workflows, Mobile","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881a7857accca2209793d"},
+    {"day":"Day 13","topic":"OpenPipeline, Notebooks, Dashboards, AppSec advanced","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f7881bbb0e1f15e3ac74dd6"},
+    {"day":"Day 14","topic":"Analysis","status":"Not started","labDone":false,"sessionAttended":false,"modulesDone":false,"assessment":"None","confidence":null,"url":"https://app.notion.com/p/3e4c9faf9f788195b83ac049ac1d72dd"}
+  ]
+}

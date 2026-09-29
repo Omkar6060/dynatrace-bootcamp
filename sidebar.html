@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyTrade Field Guide — Dynatrace Associate Bootcamp</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛰️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1210; --surface:#0F1B18; --surface-2:#132420; --border:#20342E; --border-strong:#2C453D;
+  --amber:#F2A623; --amber-dim:#8C6318; --teal:#3FC79A; --teal-dim:#1B4B3C; --coral:#E8734A;
+  --text:#E7E5DC; --text-2:#9BA69F; --text-3:#5E7069; --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh}
+::selection{background:var(--amber-dim);color:#fff}
+a{color:var(--teal);text-decoration:none}
+code,.mono{font-family:var(--mono)}
+
+/* ---- Layout shell ---- */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:280px;flex-shrink:0;border-right:1px solid var(--border);
+  position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 20px;
+  background:linear-gradient(180deg,var(--surface),var(--bg) 60%);
+}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+.brand{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0}
+.brand h1{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text)}
+.brand-sub{font-size:12px;color:var(--text-3);margin-bottom:28px;padding-left:16px}
+.progress-wrap{margin-bottom:22px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:8px}
+.progress-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);width:0%;transition:width .4s ease}
+nav.daynav{display:flex;flex-direction:column;gap:2px}
+.navlink{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;
+  font-size:13px;color:var(--text-2);border:1px solid transparent;transition:background .15s,color .15s;
+}
+.navlink:hover{background:var(--surface-2);color:var(--text)}
+.navlink.active{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+.navlink .idx{font-family:var(--mono);font-size:11px;color:var(--text-3);width:34px;flex-shrink:0}
+.navlink.active .idx{color:var(--amber)}
+.navlink input[type=checkbox]{accent-color:var(--teal);width:13px;height:13px;flex-shrink:0}
+
+.main{flex:1;min-width:0}
+.hero{
+  padding:80px 56px 56px;border-bottom:1px solid var(--border);
+  background:radial-gradient(1100px 420px at 15% -10%, rgba(63,199,154,0.10), transparent 60%);
+}
+.hero-eyebrow{font-family:var(--mono);font-size:12px;color:var(--teal);margin-bottom:18px}
+.hero h2{font-size:38px;font-weight:600;max-width:680px;line-height:1.25;letter-spacing:-0.01em}
+.hero p{margin-top:16px;max-width:560px;color:var(--text-2);font-size:15px}
+.hero-meta{display:flex;gap:28px;margin-top:32px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column;gap:2px}
+.hero-stat .n{font-family:var(--mono);font-size:22px;color:var(--amber)}
+.hero-stat .l{font-size:12px;color:var(--text-3)}
+
+.content{padding:0 56px 100px}
+.phase{padding-top:64px;scroll-margin-top:24px;border-bottom:1px solid var(--border)}
+.phase:last-child{border-bottom:none}
+.phase-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+.phase-title{font-size:24px;font-weight:600}
+.phase-tag{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-bottom:6px}
+.phase-chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:20px;border:1px solid var(--border-strong);color:var(--text-2)}
+.chip.warn{border-color:var(--amber-dim);color:var(--amber)}
+.phase-desc{color:var(--text-2);max-width:680px;margin:16px 0 32px;font-size:14.5px}
+
+.steps{display:flex;flex-direction:column;gap:18px}
+.step{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:18px 20px}
+.step-top{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.step-n{font-family:var(--mono);font-size:12px;color:var(--teal);flex-shrink:0}
+.step-title{font-weight:600;font-size:14.5px}
+.step-body{color:var(--text-2);font-size:13.5px;margin-left:34px}
+.step-body p{margin-bottom:8px}
+.step-body ul{margin:8px 0 8px 18px}
+.step-body li{margin-bottom:4px}
+
+pre.code{
+  margin:34px;margin-left:34px;position:relative;background:#080D0B;border:1px solid var(--border);
+  border-radius:8px;padding:14px 44px 14px 16px;overflow-x:auto;font-size:12.5px;font-family:var(--mono);
+  color:#C9E8DA;line-height:1.55;
+}
+.step-body pre.code{margin:10px 0 6px 0}
+.copy-btn{
+  position:absolute;top:10px;right:10px;background:var(--surface-2);border:1px solid var(--border-strong);
+  color:var(--text-2);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;
+}
+.copy-btn:hover{color:var(--text);border-color:var(--teal)}
+.copy-btn.copied{color:var(--teal);border-color:var(--teal)}
+
+.concepts{margin-top:28px}
+.concepts-label{font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:10px}
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.concept{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:12px 14px}
+.concept .k{font-weight:600;font-size:13px;margin-bottom:4px}
+.concept .v{font-size:12.5px;color:var(--text-2)}
+
+.outline-box{border:1px dashed var(--border-strong);border-radius:10px;padding:22px;color:var(--text-2);font-size:13.5px}
+.outline-box ul{margin:10px 0 0 18px}
+.outline-box li{margin-bottom:6px}
+
+footer{padding:40px 56px;border-top:1px solid var(--border);color:var(--text-3);font-size:12.5px;font-family:var(--mono)}
+
+@media (max-width:860px){
+  .shell{flex-direction:column}
+  .sidebar{position:relative;width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .hero{padding:48px 24px}
+  .content{padding:0 24px 60px}
+  .hero h2{font-size:28px}
+}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="dot"></span><h1>EasyTrade field guide</h1></div>
+    <div class="brand-sub">Dynatrace Associate bootcamp</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Progress</span><span id="progress-count">0 / 0</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <nav class="daynav" id="daynav"></nav>
+  </aside>
+
+  <main class="main">
+    <section class="hero">
+      <div class="hero-eyebrow">Self-hosted lab journal — EasyTrade on Docker, Kali Linux</div>
+      <h2>Every command, config and query from setup to Grail, in the order we actually ran them.</h2>
+      <p>This is a working record of the bootcamp: install OneAgent, stand up EasyTrade, wire up RUM, alerting, tagging, segments and DQL — built day by day and kept in sync with the Notion tracker.</p>
+      <div class="hero-meta">
+        <div class="hero-stat"><span class="n" id="stat-phases">0</span><span class="l">phases logged</span></div>
+        <div class="hero-stat"><span class="n" id="stat-steps">0</span><span class="l">hands-on steps</span></div>
+        <div class="hero-stat"><span class="n" id="stat-cmds">0</span><span class="l">commands &amp; queries</span></div>
+      </div>
+    </section>
+
+    <div class="content" id="content"></div>
+
+    <footer>EasyTrade field guide · built alongside the Dynatrace Associate bootcamp · check off a step to track progress locally</footer>
+  </main>
+</div>
+
+<script>
+const PHASES = [
+{
+  id:'setup', tag:'Phase 0', title:'Lab environment',
+  chips:['Docker Compose','Kali Linux','Bridged networking'],
+  desc:'Get EasyTrade running on Kali under Docker, then decide where OneAgent and ActiveGate live so the rest of the bootcamp has somewhere stable to stand on.',
+  steps:[
+    {t:'Install Docker CE and the Compose plugin', b:`Kali's own repo doesn't reliably ship Compose v2, so pull from Docker's Debian repo (bookworm works on Kali).`,
+      code:`sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" | sudo tee /etc/apt/sources.list.d/docker.list
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER && newgrp docker`},
+    {t:'Clone and start EasyTrade', b:'The modern Dynatrace demo app — replaces the older easyTravel used in some slide decks.',
+      code:`git clone https://github.com/Dynatrace/easytrade.git
+cd easytrade
+docker compose up -d
+docker compose ps`},
+    {t:'Cap the noisy containers', b:'third-party-service and the load generator run hot on a single VM. Cap them instead of stopping them, so the app keeps working.',
+      code:`# compose.override.yaml
+services:
+  third-party-service:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"`},
+    {t:'Expose EasyTrade to the parent machine (if running in a VM)', b:'Switch the VM network adapter to Bridged, then browse to the VM\'s own LAN IP.',
+      code:`ip a show eth0        # confirm an inet 192.168.x.x / 10.x.x.x line
+sudo ss -tlnp | grep :80   # confirm it's 0.0.0.0:80, not 127.0.0.1:80`},
+  ],
+  concepts:[
+    {k:'Compose v2 plugin', v:'`docker compose`, not the legacy `docker-compose` binary — Kali ships an old one that conflicts.'},
+    {k:'Bridged vs NAT', v:'Bridged gives the VM its own LAN IP; simplest way to reach EasyTrade from the host machine.'},
+    {k:'DHCP lease drops', v:'A VM can silently lose its IPv4 lease — `sudo dhclient -r eth0 && sudo dhclient eth0` renews it.'},
+  ]
+},
+{
+  id:'oneagent', tag:'Phase 0', title:'Installing OneAgent',
+  chips:['Full-Stack mode','Unsupported OS workaround'],
+  desc:'Kali isn\'t on OneAgent\'s supported-OS list, but it\'s Debian-based and usually works once you skip the check.',
+  steps:[
+    {t:'Get the installer from Deploy OneAgent', b:'In the tenant: Deploy Dynatrace → Deploy OneAgent → Linux. Copy the exact wget + install commands shown — don\'t retype them.'},
+    {t:'Run it, forcing past the OS check', b:'The installer will refuse Kali by default. Add the skip flag it suggests in its own error message.',
+      code:`sudo /bin/sh Dynatrace-OneAgent-Linux-*.sh \\
+  SKIP_OS_SUPPORT_CHECK=true \\
+  --set-monitoring-mode=fullstack \\
+  --set-app-log-content-access=true`},
+    {t:'Verify and restart EasyTrade so it gets instrumented', b:'Agent only injects into processes that start after it\'s installed.',
+      code:`sudo systemctl status oneagent
+sudo /opt/dynatrace/oneagent/agent/tools/oneagentctl --get-server
+docker compose down && docker compose up -d`},
+    {t:'If a host shows "monitoring unavailable"', b:'Almost always a lost network connection, not a broken agent. Check connectivity before reinstalling anything.',
+      code:`ip a show eth0 | grep "inet "     # confirm IPv4 is still present
+curl -v https://<your-env-id>.live.dynatrace.com
+sudo systemctl restart oneagent`},
+  ],
+  concepts:[
+    {k:'Host group', v:'`oneagentctl --set-host-group=<name> --restart-service` — groups hosts for tagging and naming rules later.'},
+    {k:'Network zone', v:'Routes OneAgent traffic to the nearest ActiveGate. Assigned to both agents and ActiveGates; unassigned = default zone.'},
+    {k:'ActiveGate placement', v:'Give it its own VM, not the same box running EasyTrade — avoids resource contention and OS-support fights.'},
+  ]
+},
+{
+  id:'day1-2', tag:'Day 1–2', title:'Foundations & Smartscape',
+  chips:['Architecture','Monitoring modes','Smartscape'],
+  desc:'Understand the OneAgent → ActiveGate → Cluster → Grail path, and walk the entity hierarchy Smartscape builds from it.',
+  steps:[
+    {t:'Walk Smartscape top to bottom', b:'Host → processes → services → application, for EasyTrade specifically. Also check the horizontal view — which services call which.'},
+    {t:'Switch monitoring modes and note what disappears', b:'Full-Stack → Infrastructure → Discovery. Services and traces vanish first, then most metrics.'},
+    {t:'Know process vs service', b:'A process is a running executable (PID) — visible even in Infrastructure mode. A service is a request-handling endpoint, detected by code-level injection — Full-Stack only.'},
+    {t:'Know host vs data center', b:'A host is one monitored OS instance. A data center is the location or grouping above it — a cloud region/zone or a VMware cluster. On a bare VM with no cloud metadata, this layer is often empty.'},
+  ],
+  concepts:[
+    {k:'OneAgent → ActiveGate → Cluster', v:'Port 9999/443 to ActiveGate, HTTPS 443 from ActiveGate to the cluster.'},
+    {k:'Full-Stack vs Infrastructure vs Discovery', v:'Each step down removes a layer of detail: traces, then most metrics.'},
+    {k:'Smartscape', v:'The five-layer topology map: data center → host → process → service → application.'},
+  ]
+},
+{
+  id:'day3-4', tag:'Day 3–4', title:'Real user monitoring',
+  chips:['User tagging','Key user actions','USQL'],
+  desc:'Turn on the RUM building blocks one at a time against EasyTrade\'s frontend, verifying each with a fresh session.',
+  steps:[
+    {t:'Find the username in the app first', b:'DevTools → Network → the login call\'s response, or Local/Session storage, before configuring anything.'},
+    {t:'User tagging', b:'Session properties and user tagging → point it at the exact storage key or cookie name you found.'},
+    {t:'Key user actions', b:'Add login and a completed trade as key user actions once Dynatrace has seen them at least once.'},
+    {t:'Session replay, naming rules, conversion goal', b:'Enable replay with masking on sensitive fields; clean up ugly auto-generated action names; create a "Trade completed" conversion goal on the trade key user action.'},
+    {t:'Build a USQL funnel', b:'Pull it into a dashboard tile once your action names are confirmed.',
+      code:`SELECT FUNNEL(
+  useraction.name = "loading of page /login" AS "Login",
+  useraction.name = "click on Buy" AS "Buy"
+) FROM usersession`},
+  ],
+  concepts:[
+    {k:'Session vs action property', v:'Session property = true for the whole session (account type). Action property = tied to one action (trade amount).'},
+    {k:'Apdex vs UX Score', v:'Apdex is a satisfaction ratio from response time thresholds. User Experience Score blends speed, stability and errors.'},
+    {k:'Waterfall', v:'Per-action breakdown of every resource load — click any action in a session to open it.'},
+  ]
+},
+{
+  id:'day5-6', tag:'Day 5–6', title:'Problems, Davis AI & alerting',
+  chips:['Baselining','Maintenance window','Threshold events','Workflows'],
+  desc:'Build the alerting chain: threshold events on CPU/memory/disk, then a workflow that emails you when Davis opens a problem.',
+  steps:[
+    {t:'Maintenance window + test', b:'Scope it to one process group, then prove it works by stopping that container.',
+      code:`docker compose stop third-party-service
+# check Problems for suppression, then:
+docker compose start third-party-service`},
+    {t:'Six threshold alerts', b:'One per metric per severity — CPU/memory/disk × 45% warning / 60% critical. New-gen tenants build these as DQL-based alerts, not the classic metric-event picker.',
+      code:`timeseries cpu = avg(dt.host.cpu.usage), by:{dt.entity.host}
+| fieldsAdd alert_condition = cpu[] > 45`},
+    {t:'Workflow instead of an alerting profile (Gen3)', b:'Trigger: Davis problem, new problems, filtered by event category. Action: send email with the problem fields templated in.',
+      code:`Subject: Dynatrace problem: {{ event()['display_id'] }} - {{ event()['event.name'] }}
+Message:
+Status: {{ event()['event.status'] }}
+Category: {{ event()['event.category'] }}
+Affected: {{ event()['affected_entity_ids'] }}`},
+    {t:'Test end to end', b:'Force CPU load, confirm a problem opens and the email lands.',
+      code:`docker exec -it easytrade-third-party-service-1 sh -c "yes > /dev/null &"
+# ...wait a few minutes, check Problems + inbox...
+docker exec -it easytrade-third-party-service-1 pkill yes`},
+  ],
+  concepts:[
+    {k:'Baselining types', v:'Auto-adaptive (learns over time), seasonal (daily/weekly pattern), static threshold (fixed number — used here).'},
+    {k:'Alerting profile → Workflow', v:'Gen3 replaces the profile + notification pair with a Davis-problem-triggered workflow.'},
+    {k:'Maintenance window vs mute', v:'A maintenance window is time-boxed and can suppress detection or just alerting; a mute silences a specific problem type indefinitely.'},
+  ]
+},
+{
+  id:'day7', tag:'Day 7', title:'Tagging & segments',
+  chips:['Host groups','DT_TAGS','Segments (Gen3)'],
+  desc:'Get EasyTrade\'s entities consistently tagged, then scope everything to those tags with a segment — the Gen3 replacement for a management zone.',
+  steps:[
+    {t:'Manual tags first (trial-safe)', b:'Auto-tagging rules can be gated on trial tenants — manual tags and DT_TAGS both work regardless.'},
+    {t:'Tag via environment variable', b:'OneAgent reads DT_TAGS straight from the container environment — no rule engine involved.',
+      code:`# compose.override.yaml
+services:
+  third-party-service:
+    environment:
+      - DT_TAGS=project=easytrade env=lab tier=external`},
+    {t:'Automatically applied tags (if available)', b:'Settings → Automatically applied tags → rule scoped to Hosts (condition: host group) and to Services (condition: process group name contains "easytrade").'},
+    {t:'Build a segment', b:'Settings → Environment segmentation → Segments. Filter on the tag or on dt.host_group_id, preview across Logs/Metrics/Entities, then save.',
+      code:`fetch dt.entity.host
+| filter matchesValue(tags, "project:easytrade")`},
+  ],
+  concepts:[
+    {k:'Tag vs metadata', v:'A tag is a label you apply to filter and group. Metadata is auto-detected (technology, cloud properties) — it can feed a tag but isn\'t one.'},
+    {k:'Management zone → 3 concepts', v:'Data filtering → Segments. Access control → IAM policies. Data organization → Data partitioning.'},
+    {k:'Naming rule placeholders', v:'`{HostGroup:Name}-{Host:DetectedName}` etc. — changes the display name only, never the entity ID.'},
+  ]
+},
+{
+  id:'day8', tag:'Day 8', title:'Network zones, custom service & AppSec',
+  chips:['Network zone','Custom service','Request attribute','Vulnerabilities'],
+  desc:'Fill the gaps auto-detection leaves, and turn on Application Security against your own EasyTrade instance.',
+  steps:[
+    {t:'Network zone', b:'Groups hosts by location so OneAgent prefers ActiveGates in the same zone.',
+      code:`sudo /opt/dynatrace/oneagent/agent/tools/oneagentctl --set-network-zone=easytrade-lab --restart-service`},
+    {t:'Custom service', b:'Find a class + method from a trace\'s code-level view that auto-detection missed, then register it under Server-side service monitoring.'},
+    {t:'Request attribute', b:'Capture a value from a request (header, parameter, or method argument) — e.g. account ID — then filter distributed traces by it.'},
+    {t:'Log metric', b:'Turn a log pattern into a chartable, alertable metric via OpenPipeline\'s metric extraction.',
+      code:`matchesValue(loglevel, "ERROR")`},
+    {t:'Application Security', b:'Enable third-party and code-level vulnerability detection. Optionally turn on attack protection in Monitor mode and send a harmless test payload from Kali to your own EasyTrade only.'},
+  ],
+  concepts:[
+    {k:'Network zone', v:'Routes OneAgent traffic only — doesn\'t change what gets monitored.'},
+    {k:'Custom service', v:'Needs an exact class + method; fills a gap auto-detection left.'},
+    {k:'Third-party vs code-level vulns', v:'Third-party = library CVEs. Code-level = flaws in your own code.'},
+  ]
+},
+{
+  id:'day9', tag:'Day 9', title:'Grail & DQL',
+  chips:['fetch','timeseries','parse','summarize'],
+  desc:'The densest day — Grail is one lakehouse for everything, queried with a pipeline of DQL commands joined by `|`.',
+  steps:[
+    {t:'Load and filter', b:'Every query starts narrow — filter before you aggregate.',
+      code:`fetch logs, from:now()-1h
+| filter loglevel == "ERROR"
+| fields timestamp, loglevel, content
+| sort timestamp desc
+| limit 50`},
+    {t:'Aggregate', b:'Know count(), countIf(), sum(), avg(), min(), max(), percentile().',
+      code:`fetch logs, from:now()-24h
+| summarize count(), by:{loglevel}
+| sort \`count()\` desc`},
+    {t:'Parse fields out of raw text', b:'Dynatrace Pattern Language pulls a typed field straight out of a log line.',
+      code:`fetch logs
+| parse content, "LD 'user=' WORD:user"
+| summarize count(), by:{user}`},
+    {t:'Metrics use timeseries, not fetch', b:'',
+      code:`timeseries cpu = avg(dt.host.cpu.usage), by:{dt.entity.host}, interval:5m
+| fieldsAdd host = entityName(dt.entity.host)`},
+    {t:'Other data objects', b:'One query each to see the shape of the data.',
+      code:`fetch bizevents | summarize count(), by:{event.type}
+fetch spans | summarize count(), by:{dt.entity.service}
+fetch dt.davis.problems`},
+  ],
+  concepts:[
+    {k:'Grail', v:'One data lakehouse for logs, metrics, traces, events, business events and entities — schema-on-read.'},
+    {k:'DQL pipeline', v:'`fetch`/`timeseries` load data, then `|` chains filter/summarize/fields/sort — filter early, it\'s cheaper.'},
+    {k:'fields vs fieldsAdd', v:'`fields` keeps only named columns; `fieldsAdd` creates a new one without dropping the rest.'},
+  ]
+},
+{
+  id:'day10-14', tag:'Day 10–14', title:'APIs, synthetics, Kubernetes & advanced',
+  chips:['Outline','Continued in Notion'],
+  desc:'Not yet walked through in this guide — logged in the Notion tracker as the plan continues. Kept here as the map for what\'s next.',
+  outline:[
+    'Day 10 — API token + curl/Python problem exporter; Slack or Jira integration test.',
+    'Day 11 — Business event capture rule (`fetch bizevents`); private synthetic location on an ActiveGate; HTTP + browser clickpath monitors.',
+    'Day 12 — kind/minikube + Dynatrace Operator; deploy EasyTrade\'s Kubernetes manifests; map cluster → namespace → node → workload → pod.',
+    'Day 13 — One workflow, one OpenPipeline rule, one Notebook, one Dashboard, one Davis anomaly detector.',
+    'Day 14 — With a problem pattern active, find the slow method yourself via profiling, traces, service flow and hotspots — then compare with Davis\'s RCA.',
+  ]
+}
+];
+
+// ---- Render ----
+const nav = document.getElementById('daynav');
+const content = document.getElementById('content');
+let totalSteps = 0, totalCmds = 0;
+
+PHASES.forEach((p, pi) => {
+  // nav entry
+  const navEl = document.createElement('div');
+  navEl.className = 'navlink';
+  navEl.dataset.target = p.id;
+  const stepCount = (p.steps||[]).length || (p.outline ? 1 : 0);
+  navEl.innerHTML = `<input type="checkbox" data-phase="${p.id}" onclick="event.stopPropagation()"><span class="idx">${p.tag.replace('Phase ','P').replace('Day ','D')}</span><span>${p.title}</span>`;
+  navEl.addEventListener('click', (e)=>{ if(e.target.tagName!=='INPUT') document.getElementById(p.id).scrollIntoView({behavior:'smooth', block:'start'}); });
+  nav.appendChild(navEl);
+
+  // phase section
+  const sec = document.createElement('section');
+  sec.className = 'phase';
+  sec.id = p.id;
+
+  let stepsHtml = '';
+  if (p.steps) {
+    totalSteps += p.steps.length;
+    stepsHtml = '<div class="steps">' + p.steps.map((s,i)=>{
+      if (s.code) totalCmds++;
+      return `<div class="step">
+        <div class="step-top"><span class="step-n">${String(i+1).padStart(2,'0')}</span><span class="step-title">${s.t}</span></div>
+        <div class="step-body">${s.b?`<p>${s.b}</p>`:''}${s.code?`<pre class="code">${escapeHtml(s.code)}<button class="copy-btn" onclick="copyCode(this)">copy</button></pre>`:''}</div>
+      </div>`;
+    }).join('') + '</div>';
+  } else if (p.outline) {
+    stepsHtml = `<div class="outline-box"><strong style="color:var(--text)">Planned</strong><ul>${p.outline.map(o=>`<li>${o}</li>`).join('')}</ul></div>`;
+  }
+
+  const conceptsHtml = p.concepts ? `<div class="concepts">
+      <div class="concepts-label">Worth remembering</div>
+      <div class="concept-grid">${p.concepts.map(c=>`<div class="concept"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('')}</div>
+    </div>` : '';
+
+  sec.innerHTML = `
+    <div class="phase-head">
+      <div>
+        <div class="phase-tag">${p.tag}</div>
+        <div class="phase-title">${p.title}</div>
+      </div>
+      <div class="phase-chips">${p.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+    </div>
+    <p class="phase-desc">${p.desc}</p>
+    ${stepsHtml}
+    ${conceptsHtml}
+  `;
+  content.appendChild(sec);
+});
+
+document.getElementById('stat-phases').textContent = PHASES.length;
+document.getElementById('stat-steps').textContent = totalSteps;
+document.getElementById('stat-cmds').textContent = totalCmds;
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function copyCode(btn){
+  const pre = btn.parentElement;
+  const text = pre.textContent.replace('copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = 'copied'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ---- Progress tracking (localStorage, per-browser) ----
+const STORAGE_KEY = 'easytrade-guide-progress';
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ return {}; } }
+function saveProgress(p){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }catch(e){} }
+function updateProgressUI(){
+  const p = loadProgress();
+  const boxes = document.querySelectorAll('input[data-phase]');
+  let done = 0;
+  boxes.forEach(b=>{ b.checked = !!p[b.dataset.phase]; if(b.checked) done++; });
+  document.getElementById('progress-count').textContent = `${done} / ${boxes.length}`;
+  document.getElementById('progress-fill').style.width = boxes.length ? `${(done/boxes.length)*100}%` : '0%';
+}
+document.querySelectorAll('input[data-phase]').forEach(b=>{
+  b.addEventListener('change', ()=>{
+    const p = loadProgress();
+    p[b.dataset.phase] = b.checked;
+    saveProgress(p);
+    updateProgressUI();
+  });
+});
+updateProgressUI();
+
+// ---- Scroll-spy active nav ----
+const sections = Array.from(document.querySelectorAll('.phase'));
+const navLinks = Array.from(document.querySelectorAll('.navlink'));
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      navLinks.forEach(n=>n.classList.remove('active'));
+      const active = navLinks.find(n=>n.dataset.target===entry.target.id);
+      if(active) active.classList.add('active');
+    }
+  });
+}, {rootMargin:'-10% 0px -75% 0px'});
+sections.forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>
