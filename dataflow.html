@@ -56,20 +56,59 @@ canvas#scene.dragging{cursor:grabbing}
   backdrop-filter:blur(4px);
 }
 
-.caption-bar{
-  margin-top:0;border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;
-  background:var(--surface);padding:20px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+/* ---- Side card: pops out next to whichever stop the comet is at ---- */
+.side-card{
+  position:absolute;width:230px;padding:14px 16px;border-radius:10px;
+  border:1px solid var(--border-strong);background:rgba(15,27,24,0.96);backdrop-filter:blur(6px);
+  box-shadow:0 12px 30px -10px rgba(0,0,0,0.6);pointer-events:none;
+  opacity:0;transition:opacity .25s ease;z-index:8;
 }
-.caption-step{
-  font-family:var(--mono);font-size:11px;color:var(--text-3);white-space:nowrap;flex-shrink:0;
+.side-card.visible{opacity:1}
+.side-card-arrow{
+  position:absolute;top:24px;width:10px;height:10px;background:rgba(15,27,24,0.96);
+  border-left:1px solid var(--border-strong);border-bottom:1px solid var(--border-strong);
+  transform:rotate(45deg);
 }
-.caption-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;transition:background .3s}
-.caption-text{font-size:17px;font-weight:600;transition:opacity .2s}
-.caption-text .em{font-size:22px;margin-right:6px}
+.side-card-arrow.left{left:-6px}
+.side-card-arrow.right{right:-6px;transform:rotate(225deg)}
+.sc-top{display:flex;align-items:flex-start;gap:10px}
+.sc-em{font-size:26px;line-height:1;flex-shrink:0}
+.sc-title{font-weight:800;font-size:15px;line-height:1.25}
+.sc-tech{font-family:var(--mono);font-size:10.5px;margin-top:3px}
+.sc-desc{font-size:13px;color:var(--text-2);margin-top:10px;line-height:1.5}
+.sc-step{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
 
 @media (max-width:720px){
   canvas#scene{height:420px}
-  .caption-text{font-size:15px}
+  .side-card{width:190px;padding:12px 14px}
+  .sc-title{font-size:14px}
+}
+@media (max-width:520px){
+  .side-card{display:none}
+}
+
+/* ---- Pathway guide: every stop, read at your own pace ---- */
+.pathway-section{margin:40px 0 8px}
+.pathway-head{margin-bottom:18px}
+.pathway-head h2{font-size:20px;font-weight:800}
+.pathway-head p{font-size:13.5px;color:var(--text-2);margin-top:6px}
+.pathway-list{display:flex;flex-direction:column;gap:12px}
+.pathway-card{
+  display:flex;gap:16px;align-items:flex-start;padding:16px 18px;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface);border-left-width:3px;
+}
+.pathway-num{font-family:var(--mono);font-size:11px;color:var(--text-3);width:20px;flex-shrink:0;padding-top:4px}
+.pathway-em{font-size:28px;flex-shrink:0;line-height:1}
+.pathway-body{flex:1;min-width:0}
+.pathway-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pathway-title{font-weight:800;font-size:15.5px}
+.pathway-tech{font-family:var(--mono);font-size:11.5px}
+.pathway-kid{font-size:13.5px;color:var(--text-2);margin-top:6px;line-height:1.55}
+.pathway-carries{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-top:8px}
+.pathway-carries b{color:var(--text-2);font-weight:500}
+@media (max-width:600px){
+  .pathway-card{flex-wrap:wrap}
+  .pathway-em{font-size:24px}
 }
 
 /* ---- Technical reference (collapsible, for grown-ups) ---- */
@@ -159,12 +198,27 @@ footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3
       <button class="scene-btn" id="btn-pause">⏸ pause</button>
       <button class="scene-btn" id="btn-reset">reset view</button>
     </div>
+    <div class="side-card" id="side-card">
+      <div class="side-card-arrow" id="side-card-arrow"></div>
+      <div class="sc-top">
+        <span class="sc-em" id="sc-em"></span>
+        <div>
+          <div class="sc-title" id="sc-title"></div>
+          <div class="sc-tech" id="sc-tech"></div>
+        </div>
+      </div>
+      <div class="sc-desc" id="sc-desc"></div>
+      <div class="sc-step" id="sc-step"></div>
+    </div>
   </div>
-  <div class="caption-bar">
-    <span class="caption-step" id="caption-step">STOP 1 / 7</span>
-    <span class="caption-dot" id="caption-dot"></span>
-    <span class="caption-text" id="caption-text"><span class="em">🖥️</span>You tap something in the app on your screen.</span>
-  </div>
+
+  <section class="pathway-section">
+    <div class="pathway-head">
+      <h2>The full journey, step by step</h2>
+      <p>Everything the comet flies through, laid out to read at your own pace — no dragging or clicking required.</p>
+    </div>
+    <div class="pathway-list" id="pathway-list"></div>
+  </section>
 
   <details class="tech-section">
     <summary>Full technical reference — ports, protocols, specs (for grown-ups)</summary>
@@ -296,9 +350,11 @@ function hexToRgb(hex){
 STAGES.forEach(s => s.rgb = hexToRgb(s.color));
 
 function pathPoint(i){
-  const x = Math.sin(i*0.85) * 220;
-  const y = Math.cos(i*1.3) * 60 - 20;
-  const z = i * 160 - (N-1)*160/2;
+  // Horizontal left-to-right flow: x is the dominant reading axis (evenly spaced),
+  // a gentle z wave gives it real 3D depth without going messy/vertical, y stays mostly flat.
+  const x = (i - (N-1)/2) * 190;
+  const y = Math.sin(i*0.9) * 16;
+  const z = Math.cos(i*0.9) * 90;
   return {x, y, z};
 }
 STAGES.forEach((s, i) => { s.p = pathPoint(i); });
@@ -324,7 +380,7 @@ for(let i=0;i<140;i++){
 }
 
 // ---- Rotation state ----
-let angle = 0.4;
+let angle = 0.18;
 let dragging = false;
 let dragStartX = 0, dragStartAngle = 0;
 let moved = false;
@@ -367,7 +423,7 @@ document.getElementById('btn-pause').addEventListener('click', (e) => {
   paused = !paused;
   e.target.textContent = paused ? '▶ play' : '⏸ pause';
 });
-document.getElementById('btn-reset').addEventListener('click', () => { angle = 0.4; });
+document.getElementById('btn-reset').addEventListener('click', () => { angle = 0.18; });
 
 // ---- Projection ----
 const FOCAL = 900, CAMZ = 900, TILT = 0.26;
@@ -397,21 +453,65 @@ function lerpColor(c1, c2, t){
   return `rgb(${Math.round(lerp(c1.r,c2.r,t))},${Math.round(lerp(c1.g,c2.g,t))},${Math.round(lerp(c1.b,c2.b,t))})`;
 }
 
-const captionText = document.getElementById('caption-text');
-const captionStep = document.getElementById('caption-step');
-const captionDot = document.getElementById('caption-dot');
+// ---- Side card: content + position ----
+const sideCard = document.getElementById('side-card');
+const sideCardArrow = document.getElementById('side-card-arrow');
+const scEm = document.getElementById('sc-em');
+const scTitle = document.getElementById('sc-title');
+const scTech = document.getElementById('sc-tech');
+const scDesc = document.getElementById('sc-desc');
+const scStep = document.getElementById('sc-step');
 
-function updateCaption(idx){
+function updateSideCardContent(idx){
   const s = STAGES[idx];
-  captionStep.textContent = `STOP ${idx+1} / ${N}`;
-  captionDot.style.background = s.color;
-  captionText.style.opacity = 0;
+  sideCard.classList.remove('visible');
   setTimeout(() => {
-    captionText.innerHTML = `<span class="em">${s.em}</span>${s.kid}`;
-    captionText.style.opacity = 1;
-  }, 150);
+    scEm.textContent = s.em;
+    scTitle.textContent = s.title;
+    scTech.textContent = `(${s.tech})`;
+    scTech.style.color = s.color;
+    scDesc.textContent = s.kid;
+    scStep.textContent = `STOP ${idx+1} OF ${N}`;
+    sideCard.classList.add('visible');
+  }, 120);
 }
-updateCaption(0);
+
+function positionSideCard(sx, sy){
+  const cardW = sideCard.offsetWidth || 230;
+  const cardH = sideCard.offsetHeight || 140;
+  const onRight = sx < W/2;
+  const left = onRight ? sx + 40 : sx - 40 - cardW;
+  let top = sy - cardH/2;
+  top = Math.max(10, Math.min(H - cardH - 10, top));
+  sideCard.style.left = left + 'px';
+  sideCard.style.top = top + 'px';
+  sideCardArrow.className = 'side-card-arrow ' + (onRight ? 'left' : 'right');
+  sideCardArrow.style.top = Math.max(14, Math.min(cardH - 24, (sy - top) - 5)) + 'px';
+}
+updateSideCardContent(0);
+
+// ---- Pathway guide: readable, always-visible description of every stop ----
+const pathwayList = document.getElementById('pathway-list');
+STAGES.forEach((s, i) => {
+  const card = document.createElement('div');
+  card.className = 'pathway-card';
+  card.style.borderLeftColor = s.color;
+  card.innerHTML = `
+    <div class="pathway-num">${String(i+1).padStart(2,'0')}</div>
+    <div class="pathway-em">${s.em}</div>
+    <div class="pathway-body">
+      <div class="pathway-top">
+        <span class="pathway-title">${s.title}</span>
+        <span class="pathway-tech" style="color:${s.color}">(${s.tech})</span>
+      </div>
+      <div class="pathway-kid">${s.kid}</div>
+      <div class="pathway-carries"><b>Carries:</b> ${s.carries} &nbsp;·&nbsp; <b>Port:</b> ${s.port} &nbsp;·&nbsp; <b>Protocol:</b> ${s.proto}</div>
+    </div>
+  `;
+  card.addEventListener('click', () => openPanel(s));
+  card.style.cursor = 'pointer';
+  pathwayList.appendChild(card);
+});
 
 // ---- Spec table (accessible / technical reference) ----
 const tbody = document.getElementById('spec-tbody');
@@ -494,26 +594,6 @@ function handleClick(clientX, clientY){
   if(best) openPanel(best);
 }
 
-// ---- Word-wrap helper for the on-canvas description lines ----
-function wrapText(ctx, text, cx, startY, maxWidth, lineHeight){
-  const words = text.split(' ');
-  let line = '';
-  let y = startY;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  for(let i=0;i<words.length;i++){
-    const test = line + words[i] + ' ';
-    if(ctx.measureText(test).width > maxWidth && line !== ''){
-      ctx.fillText(line.trim(), cx, y);
-      line = words[i] + ' ';
-      y += lineHeight;
-    } else {
-      line = test;
-    }
-  }
-  ctx.fillText(line.trim(), cx, y);
-}
-
 // ---- Render loop ----
 let lastTs = null;
 function render(ts){
@@ -543,6 +623,7 @@ function render(ts){
 
   // project stations
   const proj = STAGES.map(s => ({stage:s, ...project(s.p, angle)}));
+  const nearestIdx = Math.round(Math.min(progress, N-1));
 
   // path (glow, color-blended per segment)
   for(let i=0;i<N-1;i++){
@@ -632,39 +713,29 @@ function render(ts){
     ctx.textBaseline = 'middle';
     ctx.fillText(s.em, o.sx, o.sy);
 
-    // title (the fun name)
-    const titleSize = Math.round(13*o.scale+2);
+    // compact title only — full details live in the side card for the active stop
+    const titleSize = Math.round(12*o.scale+2);
     ctx.font = `700 ${titleSize}px Inter, sans-serif`;
     ctx.fillStyle = 'rgba(241,239,230,0.94)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText(s.title, o.sx, o.sy + R + 8);
 
-    // technical name — what it's really called, denoting the comparison
-    const techSize = Math.max(9, Math.round(10.5*o.scale));
+    const techSize = Math.max(8, Math.round(9.5*o.scale));
     ctx.font = `${techSize}px "JetBrains Mono", monospace`;
     ctx.fillStyle = s.color;
-    ctx.globalAlpha = 0.85;
-    ctx.fillText(`(${s.tech})`, o.sx, o.sy + R + 8 + titleSize + 4);
+    ctx.globalAlpha = 0.8;
+    ctx.fillText(`(${s.tech})`, o.sx, o.sy + R + 8 + titleSize + 3);
     ctx.globalAlpha = 1;
 
-    // short description — only once reasonably close, so distant stops don't clutter
-    if(o.scale > 0.85){
-      const descSize = Math.max(9, Math.round(10*o.scale));
-      ctx.font = `${descSize}px Inter, sans-serif`;
-      ctx.fillStyle = 'rgba(168,179,172,0.85)';
-      const maxW = 150*o.scale;
-      wrapText(ctx, s.kid, o.sx, o.sy + R + 8 + titleSize + techSize + 12, maxW, descSize*1.3);
-    }
-
-    lastScreenPositions.push({sx:o.sx, sy:o.sy, scale:o.scale, stage:s});
+    lastScreenPositions.push({sx:o.sx, sy:o.sy, scale:o.scale, stage:s, idx: STAGES.indexOf(s)});
   });
 
-  // caption sync
-  const nearestIdx = Math.round(Math.min(progress, N-1));
+  // side card: follow the active stop every frame, refresh content only when the stop changes
+  positionSideCard(proj[nearestIdx].sx, proj[nearestIdx].sy);
   if(nearestIdx !== lastStationIndex){
     lastStationIndex = nearestIdx;
-    updateCaption(nearestIdx);
+    updateSideCardContent(nearestIdx);
   }
 
   requestAnimationFrame(render);
