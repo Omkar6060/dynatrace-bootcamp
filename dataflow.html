@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Flow — EasyTrade / Dynatrace</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛰️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1210; --surface:#0F1B18; --surface-2:#132420; --border:#20342E; --border-strong:#2C453D;
+  --amber:#F2A623; --amber-dim:#8C6318; --teal:#3FC79A; --teal-dim:#1B4B3C; --coral:#E8734A;
+  --text:#E7E5DC; --text-2:#9BA69F; --text-3:#5E7069; --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh;overflow-x:hidden}
+a{color:var(--teal)}
+code,.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;padding:18px 32px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,18,16,0.92);
+  backdrop-filter:blur(6px);z-index:20;
+}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--text-2)}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.topnav{display:flex;gap:18px;font-family:var(--mono);font-size:12.5px}
+.topnav a{color:var(--text-2);padding:4px 2px;border-bottom:1px solid transparent}
+.topnav a:hover, .topnav a.current{color:var(--text);border-color:var(--teal)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+header.hero{padding:56px 0 20px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--teal);margin-bottom:14px}
+h1{font-size:clamp(26px,4vw,38px);font-weight:700;max-width:720px;line-height:1.25}
+.sub{margin-top:12px;max-width:600px;color:var(--text-2);font-size:14.5px}
+.instruction{
+  display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:7px 13px;
+  border:1px solid var(--border-strong);border-radius:20px;font-family:var(--mono);font-size:12px;color:var(--amber);
+  background:var(--surface);
+}
+.instruction .k{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px;color:var(--text)}
+
+/* ---- 3D stage ---- */
+.stage-outer{
+  margin:36px 0 8px;border:1px solid var(--border);border-radius:14px;background:
+    radial-gradient(600px 300px at 50% 20%, rgba(63,199,154,0.08), transparent 70%), var(--surface);
+  position:relative;overflow:hidden;
+}
+.stage3d{
+  height:520px;display:flex;align-items:center;justify-content:center;
+  perspective:1400px;cursor:grab;touch-action:none;position:relative;
+}
+.stage3d.dragging{cursor:grabbing}
+.ring{
+  position:relative;width:1px;height:1px;transform-style:preserve-3d;
+  transform:rotateX(-8deg) rotateY(0deg);
+}
+.node3d{
+  position:absolute;top:50%;left:50%;width:190px;height:130px;margin:-65px 0 0 -95px;
+  transform-style:preserve-3d;cursor:pointer;
+}
+.node3d .face3d{
+  width:100%;height:100%;border-radius:10px;border:1px solid var(--border-strong);
+  background:linear-gradient(180deg, rgba(63,199,154,0.05), var(--surface-2));
+  padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;
+  transition:border-color .2s;
+}
+.node3d:hover .face3d{border-color:var(--teal)}
+.node3d .idx{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.node3d .n-title{font-weight:700;font-size:14.5px;margin-top:6px;line-height:1.25}
+.node3d .n-port{font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:8px}
+.node3d .n-hint{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:2px}
+
+.flowring{position:absolute;inset:0;pointer-events:none}
+.flowring svg{width:100%;height:100%}
+.flow-dash{stroke-dasharray:6 10;animation:flowspin 3.2s linear infinite}
+@keyframes flowspin{to{stroke-dashoffset:-160}}
+@media (prefers-reduced-motion: reduce){.flow-dash{animation:none}}
+
+.stage-controls{
+  position:absolute;bottom:14px;right:16px;display:flex;gap:8px;z-index:5;
+}
+.stage-btn{
+  font-family:var(--mono);font-size:11px;color:var(--text-2);background:var(--surface-2);
+  border:1px solid var(--border-strong);border-radius:6px;padding:6px 10px;cursor:pointer;
+}
+.stage-btn:hover{color:var(--text);border-color:var(--teal)}
+
+@media (max-width:720px){
+  .stage3d{height:420px}
+  .node3d{width:150px;height:110px;margin:-55px 0 0 -75px}
+  .node3d .n-title{font-size:12.5px}
+}
+
+/* ---- Legend table (accessible fallback / full spec list) ---- */
+.legend-section{margin:44px 0 80px}
+.legend-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.legend-head h2{font-size:19px;font-weight:700}
+.legend-head p{font-size:13px;color:var(--text-2)}
+.spec-table{width:100%;border-collapse:collapse;font-size:13px}
+.spec-table th{
+  text-align:left;font-family:var(--mono);font-size:11px;color:var(--text-3);font-weight:500;
+  padding:10px 14px;border-bottom:1px solid var(--border-strong);
+}
+.spec-table td{padding:14px;border-bottom:1px solid var(--border);vertical-align:top}
+.spec-table tr:hover td{background:var(--surface)}
+.spec-table .cell-n{font-weight:700;font-size:13.5px}
+.spec-table .cell-port{font-family:var(--mono);color:var(--amber);white-space:nowrap}
+.spec-table .cell-proto{font-family:var(--mono);color:var(--teal);white-space:nowrap}
+.spec-table .cell-data{color:var(--text-2)}
+
+footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3);font-size:12.5px;font-family:var(--mono);margin-top:20px}
+
+/* ---- Modal (shared pattern) ---- */
+.overlay{position:fixed;inset:0;background:rgba(3,7,6,0);z-index:50;display:none;transition:background .28s ease}
+.overlay.open{display:block;background:rgba(3,7,6,0.75)}
+.panel{
+  position:fixed;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;
+  overflow:hidden;transition:top .32s cubic-bezier(.2,.85,.3,1),left .32s cubic-bezier(.2,.85,.3,1),
+  width .32s cubic-bezier(.2,.85,.3,1),height .32s cubic-bezier(.2,.85,.3,1),border-radius .32s ease;
+  display:flex;flex-direction:column;z-index:51;
+}
+.panel-head{
+  padding:22px 26px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  flex-shrink:0;background:linear-gradient(180deg, rgba(63,199,154,0.06), transparent);
+}
+.panel-tag{font-family:var(--mono);font-size:11px;color:var(--teal);margin-bottom:6px}
+.panel-title{font-size:20px;font-weight:700}
+.panel-desc{color:var(--text-2);font-size:13.5px;margin-top:8px;max-width:560px}
+.close-btn{
+  flex-shrink:0;width:30px;height:30px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface-2);
+  color:var(--text-2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
+}
+.close-btn:hover{color:var(--text);border-color:var(--teal)}
+.panel-body{padding:22px 26px 34px;overflow-y:auto;flex:1}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+@media (max-width:520px){.spec-grid{grid-template-columns:1fr}}
+.spec-card{border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:11px 13px}
+.spec-card .k{font-family:var(--mono);font-size:10.5px;color:var(--amber);margin-bottom:4px}
+.spec-card .v{font-size:13px;color:var(--text)}
+.panel-section-label{font-family:var(--mono);font-size:11px;color:var(--teal);margin:22px 0 10px}
+.panel-body ul{margin-left:18px;font-size:13.5px;color:var(--text-2)}
+.panel-body li{margin-bottom:6px}
+.doclink-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.doclink{font-family:var(--mono);font-size:12px;color:var(--teal);border:1px solid var(--border-strong);border-radius:20px;padding:6px 12px}
+.doclink:hover{border-color:var(--teal);background:var(--surface-2)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>EasyTrade field guide</div>
+  <nav class="topnav">
+    <a href="index.html">Container yard</a>
+    <a href="sidebar.html">Guide</a>
+    <a href="dataflow.html" class="current">Data flow</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">EasyTrade lab · how a request becomes a dashboard</div>
+    <h1>Data flow through the Dynatrace environment</h1>
+    <p class="sub">Every hop your data takes, from a click in EasyTrade to a query in Grail — with the exact ports, protocols and payloads at each stage. Drag the model to rotate it, click any node for full specifications.</p>
+    <div class="instruction"><span class="k">drag</span> to rotate · <span class="k">click</span> a node for specs</div>
+  </header>
+
+  <div class="stage-outer">
+    <div class="stage3d" id="stage">
+      <div class="ring" id="ring"></div>
+      <div class="flowring" aria-hidden="true">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <ellipse cx="50" cy="72" rx="42" ry="9" fill="none" stroke="var(--teal-dim)" stroke-width="0.3" class="flow-dash"/>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-controls">
+      <button class="stage-btn" id="btn-spin">pause spin</button>
+      <button class="stage-btn" id="btn-reset">reset view</button>
+    </div>
+  </div>
+
+  <section class="legend-section">
+    <div class="legend-head">
+      <h2>Full specification table</h2>
+      <p>Same seven stages, as a plain reference — click a row for the full detail panel too.</p>
+    </div>
+    <table class="spec-table" id="spec-table">
+      <thead><tr><th>#</th><th>Stage</th><th>Port</th><th>Protocol</th><th>Carries</th></tr></thead>
+      <tbody id="spec-tbody"></tbody>
+    </table>
+  </section>
+
+  <footer>Data flow — EasyTrade lab · Dynatrace Associate bootcamp</footer>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="panel" id="panel" style="display:none">
+  <div class="panel-head">
+    <div>
+      <div class="panel-tag" id="panel-tag"></div>
+      <div class="panel-title" id="panel-title"></div>
+      <div class="panel-desc" id="panel-desc"></div>
+    </div>
+    <button class="close-btn" id="close-btn" aria-label="Close">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script>
+const STAGES = [
+{
+  id:'client', title:'Browser / EasyTrade client', port:'80 / 443', proto:'HTTP / HTTPS',
+  carries:'Page loads, user actions, XHR/fetch calls',
+  desc:'Where the data originates. Every click, login and trade in EasyTrade starts here, plus the RUM JavaScript that OneAgent injects into the page.',
+  specs:[
+    {k:'Direction', v:'Outbound to EasyTrade frontend; RUM beacons fire back to the ActiveGate/cluster'},
+    {k:'Payload', v:'HTML/JS/CSS, JSON API calls (login, trade), RUM timing beacons'},
+    {k:'Injected by', v:'OneAgent\'s JavaScript tag, auto-inserted into served pages in Full-Stack mode'},
+  ],
+  notes:['RUM data (session, user actions, Apdex) is captured here before anything reaches OneAgent proper.','No RUM data exists in Discovery or Infrastructure monitoring mode — injection only happens in Full-Stack.'],
+  links:[{l:'Real User Monitoring — overview', u:'https://docs.dynatrace.com/docs/shortlink/rum-injection'}],
+},
+{
+  id:'oneagent', title:'OneAgent', port:'9999 (or 443)', proto:'HTTPS (proprietary framing)',
+  carries:'Host metrics, process info, PurePath traces, logs',
+  desc:'One process per host, injected into every monitored process it finds. Collects host, process, service and trace data, then ships it onward.',
+  specs:[
+    {k:'Injection method', v:'LD_PRELOAD (Linux) / code injection into the process at start or via the CSI driver in Kubernetes'},
+    {k:'Outbound target', v:'Its assigned ActiveGate, or the cluster directly if none is configured'},
+    {k:'Monitoring modes', v:'Full-Stack (services+traces), Infrastructure (host+process only), Discovery (host only)'},
+  ],
+  notes:['A OneAgent belongs to exactly one host group and, optionally, one network zone.','`oneagentctl --set-network-zone=<zone>` controls which ActiveGate it prefers.'],
+  links:[
+    {l:'Install OneAgent on Linux', u:'https://docs.dynatrace.com/docs/shortlink/oneagent-linux-install'},
+    {l:'OneAgent monitoring modes', u:'https://docs.dynatrace.com/docs/shortlink/oneagent-monitoring-modes'},
+  ],
+},
+{
+  id:'activegate', title:'ActiveGate', port:'9999 in / 443 out', proto:'HTTPS',
+  carries:'Buffered OneAgent traffic, synthetic results, K8s API polls, extension data',
+  desc:'Sits between OneAgent and the cluster. Routes and buffers agent traffic, executes synthetic monitors, and polls the Kubernetes API for cluster monitoring.',
+  specs:[
+    {k:'Inbound', v:'Port 9999 from OneAgents in its network zone; port 443 for API-routing clients'},
+    {k:'Outbound', v:'Port 443 HTTPS to the Dynatrace cluster (SaaS or Managed)'},
+    {k:'Extra roles', v:'Private synthetic location host, Kubernetes API poller, extension execution environment'},
+  ],
+  notes:['Should live on its own host — sharing a box with monitored workloads risks resource contention.','A private synthetic location and the Kubernetes Operator\'s own ActiveGate both depend on one being available.'],
+  links:[
+    {l:'ActiveGate — overview', u:'https://docs.dynatrace.com/docs/shortlink/activegate-hub'},
+    {l:'Network zones', u:'https://docs.dynatrace.com/docs/shortlink/network-zones'},
+  ],
+},
+{
+  id:'cluster', title:'Dynatrace cluster', port:'443', proto:'HTTPS',
+  carries:'Authenticated, enriched telemetry; Davis AI correlation output',
+  desc:'Authenticates every inbound connection, runs data through an ingestion pipeline that attaches tags and entity IDs, then hands it to Davis AI and Grail.',
+  specs:[
+    {k:'Enrichment', v:'Host group, tags (manual, automatic, DT_TAGS) and entity relationships get attached here'},
+    {k:'Davis AI', v:'Continuously correlates incoming signals into problems, using auto-adaptive, seasonal or static-threshold baselining'},
+    {k:'Deployment', v:'SaaS (Dynatrace-hosted) or Managed (hosted on your own infrastructure) — same pipeline either way'},
+  ],
+  notes:['This is where a Workflow\'s "Davis problem" trigger actually gets its event from.','Config API and Environment API both terminate here, authenticated by the same Api-Token.'],
+  links:[
+    {l:'Root cause analysis', u:'https://docs.dynatrace.com/docs/shortlink/root-cause-analysis'},
+    {l:'Automated baselining', u:'https://docs.dynatrace.com/docs/shortlink/automated-baselining'},
+  ],
+},
+{
+  id:'grail', title:'Grail storage', port:'internal (via cluster)', proto:'—',
+  carries:'Logs, metrics, spans, events, business events, security events, entities',
+  desc:'The data lakehouse. Everything the cluster processes ends up here, schema-on-read, split into typed buckets with their own retention.',
+  specs:[
+    {k:'Model', v:'Schema-on-read — no predefined columns, shaped at query time with DQL'},
+    {k:'Bucket types', v:'logs, metrics, spans/traces, events, bizevents, security events, entities'},
+    {k:'Retention', v:'Per-bucket, configurable — this is why ingest-time filtering (OpenPipeline) matters for cost'},
+  ],
+  notes:['A business event capture rule and a log metric both write into Grail through the same OpenPipeline stage.','Permissions in Grail are assigned per bucket/table, separate from general environment roles.'],
+  links:[{l:'Grail', u:'https://docs.dynatrace.com/docs/shortlink/grail'}],
+},
+{
+  id:'query', title:'Query & apps layer', port:'443 (browser → UI)', proto:'HTTPS',
+  carries:'DQL queries, dashboard renders, notebook runs, alerting evaluations',
+  desc:'Where you actually read the data back out — DQL in Notebooks, dashboard tiles, custom threshold alerts, and Davis anomaly detectors all query Grail through this layer.',
+  specs:[
+    {k:'Core commands', v:'fetch (records), timeseries (metrics), filter, summarize, parse, join, lookup'},
+    {k:'Surfaces', v:'Notebooks, Dashboards, Logs app, Data Explorer, Settings-based alerting'},
+    {k:'Continuous queries', v:'A DQL-based threshold alert re-runs its query on a schedule, feeding results back to Davis'},
+  ],
+  notes:['This is the same layer your USQL funnel, DQL snippets, and custom service definitions all pass through.'],
+  links:[{l:'Dynatrace Query Language — hub', u:'https://docs.dynatrace.com/docs/shortlink/dql-dynatrace-query-language-hub'}],
+},
+{
+  id:'notify', title:'Notification targets', port:'443 (outbound webhooks)', proto:'HTTPS',
+  carries:'Problem/vulnerability alerts as email, Slack messages, Jira tickets',
+  desc:'The loop back to a human. A Workflow triggered by a Davis problem (or a security event) sends outbound to whichever target you configured — this closes the circle back to Day 5–6\'s alert chain.',
+  specs:[
+    {k:'Trigger', v:'Workflow, listening for a Davis problem or security event on the cluster'},
+    {k:'Targets', v:'Email (Dynatrace\'s own service), Slack (incoming webhook), Jira (REST API), ServiceNow, and others'},
+    {k:'Templating', v:'Workflow email/message bodies use `{{ event()[\'field\'] }}` expressions pulled from the triggering event'},
+  ],
+  notes:['In Gen3, this replaces the classic alerting-profile + problem-notification pair with one workflow object.'],
+  links:[{l:'Metric events / custom alerting', u:'https://docs.dynatrace.com/docs/shortlink/metric-events-for-alerting'}],
+},
+];
+
+// ---- Build the 3D ring ----
+const ring = document.getElementById('ring');
+const N = STAGES.length;
+const STEP = 360 / N;
+const RADIUS = window.innerWidth < 720 ? 260 : 420;
+
+STAGES.forEach((s, i) => {
+  const el = document.createElement('div');
+  el.className = 'node3d';
+  el.dataset.id = s.id;
+  el.dataset.angle = i * STEP;
+  el.style.transform = `rotateY(${i*STEP}deg) translateZ(${RADIUS}px)`;
+  el.innerHTML = `
+    <div class="face3d">
+      <div class="idx">STAGE ${String(i+1).padStart(2,'0')}</div>
+      <div class="n-title">${s.title}</div>
+      <div class="n-port">${s.port}</div>
+      <div class="n-hint">click for full specs</div>
+    </div>`;
+  el.addEventListener('click', () => openPanel(s, el));
+  ring.appendChild(el);
+});
+
+// ---- Spec table (accessible fallback / full reference) ----
+const tbody = document.getElementById('spec-tbody');
+STAGES.forEach((s, i) => {
+  const tr = document.createElement('tr');
+  tr.style.cursor = 'pointer';
+  tr.innerHTML = `
+    <td class="mono" style="color:var(--text-3)">${String(i+1).padStart(2,'0')}</td>
+    <td class="cell-n">${s.title}</td>
+    <td class="cell-port">${s.port}</td>
+    <td class="cell-proto">${s.proto}</td>
+    <td class="cell-data">${s.carries}</td>
+  `;
+  tr.addEventListener('click', () => openPanel(s, document.querySelector(`.node3d[data-id="${s.id}"]`)));
+  tbody.appendChild(tr);
+});
+
+// ---- Drag to rotate + idle auto-spin ----
+const stage = document.getElementById('stage');
+let currentAngle = 0;
+let dragging = false;
+let lastX = 0;
+let spinning = true;
+let lastFrame = null;
+
+function tick(ts){
+  if (lastFrame == null) lastFrame = ts;
+  const dt = ts - lastFrame;
+  lastFrame = ts;
+  if (spinning && !dragging) {
+    currentAngle += dt * 0.012;
+    applyRotation();
+  }
+  requestAnimationFrame(tick);
+}
+function applyRotation(){
+  ring.style.transform = `rotateX(-8deg) rotateY(${currentAngle}deg)`;
+}
+requestAnimationFrame(tick);
+
+function pointerDown(e){
+  dragging = true;
+  stage.classList.add('dragging');
+  lastX = (e.touches ? e.touches[0].clientX : e.clientX);
+}
+function pointerMove(e){
+  if (!dragging) return;
+  const x = (e.touches ? e.touches[0].clientX : e.clientX);
+  const dx = x - lastX;
+  lastX = x;
+  currentAngle += dx * 0.35;
+  applyRotation();
+}
+function pointerUp(){
+  dragging = false;
+  stage.classList.remove('dragging');
+}
+stage.addEventListener('mousedown', pointerDown);
+window.addEventListener('mousemove', pointerMove);
+window.addEventListener('mouseup', pointerUp);
+stage.addEventListener('touchstart', pointerDown, {passive:true});
+window.addEventListener('touchmove', pointerMove, {passive:true});
+window.addEventListener('touchend', pointerUp);
+
+document.getElementById('btn-spin').addEventListener('click', (e) => {
+  spinning = !spinning;
+  e.target.textContent = spinning ? 'pause spin' : 'resume spin';
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  currentAngle = 0;
+  applyRotation();
+});
+
+// ---- Modal ----
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+let lastRect = null;
+
+function openPanel(s, sourceEl){
+  lastRect = sourceEl ? sourceEl.getBoundingClientRect() : {top:innerHeight/2-40,left:innerWidth/2-190,width:380,height:80};
+  document.getElementById('panel-tag').textContent = `STAGE · ${s.port}`;
+  document.getElementById('panel-title').textContent = s.title;
+  document.getElementById('panel-desc').textContent = s.desc;
+
+  let body = `<div class="spec-grid">${s.specs.map(x=>`<div class="spec-card"><div class="k">${x.k}</div><div class="v">${x.v}</div></div>`).join('')}</div>`;
+  if (s.notes && s.notes.length){
+    body += `<div class="panel-section-label">Worth remembering</div><ul>${s.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`;
+  }
+  if (s.links && s.links.length){
+    body += `<div class="panel-section-label">Official Dynatrace docs</div><div class="doclink-list">${s.links.map(x=>`<a href="${x.u}" target="_blank" rel="noopener" class="doclink">${x.l} ↗</a>`).join('')}</div>`;
+  }
+  document.getElementById('panel-body').innerHTML = body;
+
+  panel.style.display = 'flex';
+  panel.style.top = lastRect.top + 'px';
+  panel.style.left = lastRect.left + 'px';
+  panel.style.width = lastRect.width + 'px';
+  panel.style.height = lastRect.height + 'px';
+  panel.style.borderRadius = '8px';
+  panel.style.transition = 'none';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  requestAnimationFrame(() => {
+    panel.style.transition = '';
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const w = Math.min(700, vw * 0.92);
+    const h = Math.min(620, vh * 0.86);
+    panel.style.top = (vh - h) / 2 + 'px';
+    panel.style.left = (vw - w) / 2 + 'px';
+    panel.style.width = w + 'px';
+    panel.style.height = h + 'px';
+    panel.style.borderRadius = '12px';
+  });
+}
+function closePanel(){
+  if (!lastRect) { panel.style.display='none'; overlay.classList.remove('open'); return; }
+  panel.style.top = lastRect.top + 'px';
+  panel.style.left = lastRect.left + 'px';
+  panel.style.width = lastRect.width + 'px';
+  panel.style.height = lastRect.height + 'px';
+  panel.style.borderRadius = '8px';
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => { panel.style.display = 'none'; }, 320);
+}
+document.getElementById('close-btn').addEventListener('click', closePanel);
+overlay.addEventListener('click', closePanel);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.style.display !== 'none') closePanel(); });
+</script>
+</body>
+</html>

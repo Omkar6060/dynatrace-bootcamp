@@ -117,9 +117,30 @@ footer{padding:40px 56px;border-top:1px solid var(--border);color:var(--text-3);
 }
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;padding:14px 32px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,18,16,0.92);
+  backdrop-filter:blur(6px);z-index:60;
+}
+.topbar .brand2{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--text-2)}
+.topbar .brand2 .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.topnav{display:flex;gap:18px;font-family:var(--mono);font-size:12.5px}
+.topnav a{color:var(--text-2);padding:4px 2px;border-bottom:1px solid transparent;text-decoration:none}
+.topnav a:hover, .topnav a.current{color:var(--text);border-color:var(--teal)}
 </style>
 </head>
 <body>
+
+<div class="topbar">
+  <div class="brand2"><span class="dot"></span>EasyTrade field guide</div>
+  <nav class="topnav">
+    <a href="index.html">Container yard</a>
+    <a href="sidebar.html" class="current">Guide</a>
+    <a href="dataflow.html">Data flow</a>
+  </nav>
+</div>
+
 <div class="shell">
 
   <aside class="sidebar">
