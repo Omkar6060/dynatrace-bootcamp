@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Flow — EasyTrade / Dynatrace</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛰️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0A1210; --surface:#0F1B18; --surface-2:#132420; --border:#20342E; --border-strong:#2C453D;
+  --bg:#070B12; --surface:#0F1B18; --surface-2:#132420; --border:#20342E; --border-strong:#2C453D;
   --amber:#F2A623; --amber-dim:#8C6318; --teal:#3FC79A; --teal-dim:#1B4B3C; --coral:#E8734A;
-  --text:#E7E5DC; --text-2:#9BA69F; --text-3:#5E7069; --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  --text:#F1EFE6; --text-2:#A8B3AC; --text-3:#657069; --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;min-height:100vh;overflow-x:hidden}
@@ -20,86 +20,70 @@ code,.mono{font-family:var(--mono)}
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 
 .topbar{
-  display:flex;align-items:center;justify-content:space-between;padding:18px 32px;
-  border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,18,16,0.92);
-  backdrop-filter:blur(6px);z-index:20;
+  display:flex;align-items:center;justify-content:space-between;padding:14px 32px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(7,11,18,0.92);
+  backdrop-filter:blur(6px);z-index:60;
 }
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--text-2)}
-.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.brand2{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--text-2)}
+.brand2 .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
 .topnav{display:flex;gap:18px;font-family:var(--mono);font-size:12.5px}
-.topnav a{color:var(--text-2);padding:4px 2px;border-bottom:1px solid transparent}
+.topnav a{color:var(--text-2);padding:4px 2px;border-bottom:1px solid transparent;text-decoration:none}
 .topnav a:hover, .topnav a.current{color:var(--text);border-color:var(--teal)}
 
 .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
-header.hero{padding:56px 0 20px}
-.eyebrow{font-family:var(--mono);font-size:12px;color:var(--teal);margin-bottom:14px}
-h1{font-size:clamp(26px,4vw,38px);font-weight:700;max-width:720px;line-height:1.25}
+header.hero{padding:44px 0 16px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--teal);margin-bottom:12px}
+h1{font-size:clamp(26px,4vw,40px);font-weight:800;max-width:760px;line-height:1.2}
 .sub{margin-top:12px;max-width:600px;color:var(--text-2);font-size:14.5px}
-.instruction{
-  display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:7px 13px;
-  border:1px solid var(--border-strong);border-radius:20px;font-family:var(--mono);font-size:12px;color:var(--amber);
-  background:var(--surface);
-}
-.instruction .k{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px;color:var(--text)}
 
-/* ---- 3D stage ---- */
-.stage-outer{
-  margin:36px 0 8px;border:1px solid var(--border);border-radius:14px;background:
-    radial-gradient(600px 300px at 50% 20%, rgba(63,199,154,0.08), transparent 70%), var(--surface);
-  position:relative;overflow:hidden;
+/* ---- Scene ---- */
+.scene-outer{
+  margin:28px 0 4px;border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  background:radial-gradient(1200px 500px at 50% 0%, #101b2c, #070B12 70%);
+  position:relative;
 }
-.stage3d{
-  height:520px;display:flex;align-items:center;justify-content:center;
-  perspective:1400px;cursor:grab;touch-action:none;position:relative;
+canvas#scene{display:block;width:100%;height:540px;cursor:grab;touch-action:none}
+canvas#scene.dragging{cursor:grabbing}
+.scene-controls{position:absolute;bottom:14px;right:16px;display:flex;gap:8px;z-index:5}
+.scene-btn{
+  font-family:var(--mono);font-size:11px;color:var(--text-2);background:rgba(19,36,32,0.85);
+  border:1px solid var(--border-strong);border-radius:6px;padding:6px 10px;cursor:pointer;backdrop-filter:blur(4px);
 }
-.stage3d.dragging{cursor:grabbing}
-.ring{
-  position:relative;width:1px;height:1px;transform-style:preserve-3d;
-  transform:rotateX(-8deg) rotateY(0deg);
+.scene-btn:hover{color:var(--text);border-color:var(--teal)}
+.drag-hint{
+  position:absolute;top:14px;left:16px;font-family:var(--mono);font-size:11px;color:var(--text-2);
+  background:rgba(19,36,32,0.85);border:1px solid var(--border-strong);border-radius:20px;padding:6px 12px;
+  backdrop-filter:blur(4px);
 }
-.node3d{
-  position:absolute;top:50%;left:50%;width:190px;height:130px;margin:-65px 0 0 -95px;
-  transform-style:preserve-3d;cursor:pointer;
-}
-.node3d .face3d{
-  width:100%;height:100%;border-radius:10px;border:1px solid var(--border-strong);
-  background:linear-gradient(180deg, rgba(63,199,154,0.05), var(--surface-2));
-  padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;
-  transition:border-color .2s;
-}
-.node3d:hover .face3d{border-color:var(--teal)}
-.node3d .idx{font-family:var(--mono);font-size:10px;color:var(--text-3)}
-.node3d .n-title{font-weight:700;font-size:14.5px;margin-top:6px;line-height:1.25}
-.node3d .n-port{font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:8px}
-.node3d .n-hint{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:2px}
 
-.flowring{position:absolute;inset:0;pointer-events:none}
-.flowring svg{width:100%;height:100%}
-.flow-dash{stroke-dasharray:6 10;animation:flowspin 3.2s linear infinite}
-@keyframes flowspin{to{stroke-dashoffset:-160}}
-@media (prefers-reduced-motion: reduce){.flow-dash{animation:none}}
-
-.stage-controls{
-  position:absolute;bottom:14px;right:16px;display:flex;gap:8px;z-index:5;
+.caption-bar{
+  margin-top:0;border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;
+  background:var(--surface);padding:20px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
 }
-.stage-btn{
-  font-family:var(--mono);font-size:11px;color:var(--text-2);background:var(--surface-2);
-  border:1px solid var(--border-strong);border-radius:6px;padding:6px 10px;cursor:pointer;
+.caption-step{
+  font-family:var(--mono);font-size:11px;color:var(--text-3);white-space:nowrap;flex-shrink:0;
 }
-.stage-btn:hover{color:var(--text);border-color:var(--teal)}
+.caption-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.caption-text{font-size:17px;font-weight:600;transition:opacity .2s}
+.caption-text .em{font-size:22px;margin-right:6px}
 
 @media (max-width:720px){
-  .stage3d{height:420px}
-  .node3d{width:150px;height:110px;margin:-55px 0 0 -75px}
-  .node3d .n-title{font-size:12.5px}
+  canvas#scene{height:420px}
+  .caption-text{font-size:15px}
 }
 
-/* ---- Legend table (accessible fallback / full spec list) ---- */
-.legend-section{margin:44px 0 80px}
-.legend-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.legend-head h2{font-size:19px;font-weight:700}
-.legend-head p{font-size:13px;color:var(--text-2)}
-.spec-table{width:100%;border-collapse:collapse;font-size:13px}
+/* ---- Technical reference (collapsible, for grown-ups) ---- */
+.tech-section{margin:36px 0 80px}
+.tech-section summary{
+  cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:12.5px;color:var(--text-2);padding:10px 0;
+  border-bottom:1px solid var(--border);user-select:none;
+}
+.tech-section summary::-webkit-details-marker{display:none}
+.tech-section summary::before{content:'▸';color:var(--teal);transition:transform .15s}
+.tech-section[open] summary::before{transform:rotate(90deg)}
+.tech-section summary:hover{color:var(--text)}
+.spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
 .spec-table th{
   text-align:left;font-family:var(--mono);font-size:11px;color:var(--text-3);font-weight:500;
   padding:10px 14px;border-bottom:1px solid var(--border-strong);
@@ -113,22 +97,24 @@ h1{font-size:clamp(26px,4vw,38px);font-weight:700;max-width:720px;line-height:1.
 
 footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3);font-size:12.5px;font-family:var(--mono);margin-top:20px}
 
-/* ---- Modal (shared pattern) ---- */
-.overlay{position:fixed;inset:0;background:rgba(3,7,6,0);z-index:50;display:none;transition:background .28s ease}
-.overlay.open{display:block;background:rgba(3,7,6,0.75)}
+/* ---- Modal ---- */
+.overlay{position:fixed;inset:0;background:rgba(3,7,6,0);z-index:80;display:none;transition:background .28s ease}
+.overlay.open{display:block;background:rgba(3,7,6,0.78)}
 .panel{
   position:fixed;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;
   overflow:hidden;transition:top .32s cubic-bezier(.2,.85,.3,1),left .32s cubic-bezier(.2,.85,.3,1),
   width .32s cubic-bezier(.2,.85,.3,1),height .32s cubic-bezier(.2,.85,.3,1),border-radius .32s ease;
-  display:flex;flex-direction:column;z-index:51;
+  display:flex;flex-direction:column;z-index:81;
 }
 .panel-head{
   padding:22px 26px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
-  flex-shrink:0;background:linear-gradient(180deg, rgba(63,199,154,0.06), transparent);
+  flex-shrink:0;
 }
-.panel-tag{font-family:var(--mono);font-size:11px;color:var(--teal);margin-bottom:6px}
-.panel-title{font-size:20px;font-weight:700}
-.panel-desc{color:var(--text-2);font-size:13.5px;margin-top:8px;max-width:560px}
+.panel-eyebrow{font-family:var(--mono);font-size:11px;color:var(--teal);margin-bottom:6px}
+.panel-title{font-size:21px;font-weight:800;display:flex;align-items:center;gap:10px}
+.panel-title .em{font-size:26px}
+.panel-kid{font-size:15px;color:var(--text);margin-top:10px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--border-strong);background:var(--surface-2)}
 .close-btn{
   flex-shrink:0;width:30px;height:30px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface-2);
   color:var(--text-2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
@@ -151,7 +137,7 @@ footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3
 <body>
 
 <div class="topbar">
-  <div class="brand"><span class="dot"></span>EasyTrade field guide</div>
+  <div class="brand2"><span class="dot"></span>EasyTrade field guide</div>
   <nav class="topnav">
     <a href="index.html">Container yard</a>
     <a href="sidebar.html">Guide</a>
@@ -161,37 +147,32 @@ footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3
 
 <div class="wrap">
   <header class="hero">
-    <div class="eyebrow">EasyTrade lab · how a request becomes a dashboard</div>
-    <h1>Data flow through the Dynatrace environment</h1>
-    <p class="sub">Every hop your data takes, from a click in EasyTrade to a query in Grail — with the exact ports, protocols and payloads at each stage. Drag the model to rotate it, click any node for full specifications.</p>
-    <div class="instruction"><span class="k">drag</span> to rotate · <span class="k">click</span> a node for specs</div>
+    <div class="eyebrow">EasyTrade lab · follow the glowing comet</div>
+    <h1>Watch data travel through Dynatrace</h1>
+    <p class="sub">A little glowing comet carries your click all the way from the app to a dashboard. Watch it fly, drag to look around, or click any stop for the full technical details.</p>
   </header>
 
-  <div class="stage-outer">
-    <div class="stage3d" id="stage">
-      <div class="ring" id="ring"></div>
-      <div class="flowring" aria-hidden="true">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-          <ellipse cx="50" cy="72" rx="42" ry="9" fill="none" stroke="var(--teal-dim)" stroke-width="0.3" class="flow-dash"/>
-        </svg>
-      </div>
-    </div>
-    <div class="stage-controls">
-      <button class="stage-btn" id="btn-spin">pause spin</button>
-      <button class="stage-btn" id="btn-reset">reset view</button>
+  <div class="scene-outer">
+    <canvas id="scene"></canvas>
+    <div class="drag-hint">🖱️ drag to look around · click a stop for details</div>
+    <div class="scene-controls">
+      <button class="scene-btn" id="btn-pause">⏸ pause</button>
+      <button class="scene-btn" id="btn-reset">reset view</button>
     </div>
   </div>
+  <div class="caption-bar">
+    <span class="caption-step" id="caption-step">STOP 1 / 7</span>
+    <span class="caption-dot" id="caption-dot"></span>
+    <span class="caption-text" id="caption-text"><span class="em">🖥️</span>You tap something in the app on your screen.</span>
+  </div>
 
-  <section class="legend-section">
-    <div class="legend-head">
-      <h2>Full specification table</h2>
-      <p>Same seven stages, as a plain reference — click a row for the full detail panel too.</p>
-    </div>
+  <details class="tech-section">
+    <summary>Full technical reference — ports, protocols, specs (for grown-ups)</summary>
     <table class="spec-table" id="spec-table">
       <thead><tr><th>#</th><th>Stage</th><th>Port</th><th>Protocol</th><th>Carries</th></tr></thead>
       <tbody id="spec-tbody"></tbody>
     </table>
-  </section>
+  </details>
 
   <footer>Data flow — EasyTrade lab · Dynatrace Associate bootcamp</footer>
 </div>
@@ -200,9 +181,9 @@ footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3
 <div class="panel" id="panel" style="display:none">
   <div class="panel-head">
     <div>
-      <div class="panel-tag" id="panel-tag"></div>
-      <div class="panel-title" id="panel-title"></div>
-      <div class="panel-desc" id="panel-desc"></div>
+      <div class="panel-eyebrow" id="panel-eyebrow"></div>
+      <div class="panel-title"><span class="em" id="panel-em"></span><span id="panel-title-text"></span></div>
+      <div class="panel-kid" id="panel-kid"></div>
     </div>
     <button class="close-btn" id="close-btn" aria-label="Close">✕</button>
   </div>
@@ -212,9 +193,9 @@ footer{padding:36px 0 60px;border-top:1px solid var(--border);color:var(--text-3
 <script>
 const STAGES = [
 {
-  id:'client', title:'Browser / EasyTrade client', port:'80 / 443', proto:'HTTP / HTTPS',
-  carries:'Page loads, user actions, XHR/fetch calls',
-  desc:'Where the data originates. Every click, login and trade in EasyTrade starts here, plus the RUM JavaScript that OneAgent injects into the page.',
+  id:'client', em:'🖥️', color:'#4FA8FF', title:'Your click', tech:'Browser / EasyTrade client',
+  kid:'You tap "Buy" in the app on your screen — that\'s where the journey begins!',
+  port:'80 / 443', proto:'HTTP / HTTPS', carries:'Page loads, user actions, XHR/fetch calls',
   specs:[
     {k:'Direction', v:'Outbound to EasyTrade frontend; RUM beacons fire back to the ActiveGate/cluster'},
     {k:'Payload', v:'HTML/JS/CSS, JSON API calls (login, trade), RUM timing beacons'},
@@ -224,11 +205,11 @@ const STAGES = [
   links:[{l:'Real User Monitoring — overview', u:'https://docs.dynatrace.com/docs/shortlink/rum-injection'}],
 },
 {
-  id:'oneagent', title:'OneAgent', port:'9999 (or 443)', proto:'HTTPS (proprietary framing)',
-  carries:'Host metrics, process info, PurePath traces, logs',
-  desc:'One process per host, injected into every monitored process it finds. Collects host, process, service and trace data, then ships it onward.',
+  id:'oneagent', em:'🤖', color:'#3FC79A', title:'The little helper', tech:'OneAgent',
+  kid:'A tiny helper robot living on the computer notices what just happened.',
+  port:'9999 (or 443)', proto:'HTTPS (proprietary framing)', carries:'Host metrics, process info, PurePath traces, logs',
   specs:[
-    {k:'Injection method', v:'LD_PRELOAD (Linux) / code injection into the process at start or via the CSI driver in Kubernetes'},
+    {k:'Injection method', v:'LD_PRELOAD (Linux) / code injection into the process at start, or via the CSI driver in Kubernetes'},
     {k:'Outbound target', v:'Its assigned ActiveGate, or the cluster directly if none is configured'},
     {k:'Monitoring modes', v:'Full-Stack (services+traces), Infrastructure (host+process only), Discovery (host only)'},
   ],
@@ -239,9 +220,9 @@ const STAGES = [
   ],
 },
 {
-  id:'activegate', title:'ActiveGate', port:'9999 in / 443 out', proto:'HTTPS',
-  carries:'Buffered OneAgent traffic, synthetic results, K8s API polls, extension data',
-  desc:'Sits between OneAgent and the cluster. Routes and buffers agent traffic, executes synthetic monitors, and polls the Kubernetes API for cluster monitoring.',
+  id:'activegate', em:'🚪', color:'#B98BF7', title:'The gate', tech:'ActiveGate',
+  kid:'Your data walks through a security gate that checks it and points the way.',
+  port:'9999 in / 443 out', proto:'HTTPS', carries:'Buffered OneAgent traffic, synthetic results, K8s API polls',
   specs:[
     {k:'Inbound', v:'Port 9999 from OneAgents in its network zone; port 443 for API-routing clients'},
     {k:'Outbound', v:'Port 443 HTTPS to the Dynatrace cluster (SaaS or Managed)'},
@@ -254,9 +235,9 @@ const STAGES = [
   ],
 },
 {
-  id:'cluster', title:'Dynatrace cluster', port:'443', proto:'HTTPS',
-  carries:'Authenticated, enriched telemetry; Davis AI correlation output',
-  desc:'Authenticates every inbound connection, runs data through an ingestion pipeline that attaches tags and entity IDs, then hands it to Davis AI and Grail.',
+  id:'cluster', em:'🧠', color:'#F2A623', title:'The big brain', tech:'Dynatrace cluster',
+  kid:'A big smart brain reads your data and figures out what it means.',
+  port:'443', proto:'HTTPS', carries:'Authenticated, enriched telemetry; Davis AI correlation output',
   specs:[
     {k:'Enrichment', v:'Host group, tags (manual, automatic, DT_TAGS) and entity relationships get attached here'},
     {k:'Davis AI', v:'Continuously correlates incoming signals into problems, using auto-adaptive, seasonal or static-threshold baselining'},
@@ -269,9 +250,9 @@ const STAGES = [
   ],
 },
 {
-  id:'grail', title:'Grail storage', port:'internal (via cluster)', proto:'—',
-  carries:'Logs, metrics, spans, events, business events, security events, entities',
-  desc:'The data lakehouse. Everything the cluster processes ends up here, schema-on-read, split into typed buckets with their own retention.',
+  id:'grail', em:'🗄️', color:'#F06B9E', title:'The treasure chest', tech:'Grail storage',
+  kid:'Everything gets safely tucked away inside a giant treasure chest for later.',
+  port:'internal (via cluster)', proto:'—', carries:'Logs, metrics, spans, events, business events, security events',
   specs:[
     {k:'Model', v:'Schema-on-read — no predefined columns, shaped at query time with DQL'},
     {k:'Bucket types', v:'logs, metrics, spans/traces, events, bizevents, security events, entities'},
@@ -281,9 +262,9 @@ const STAGES = [
   links:[{l:'Grail', u:'https://docs.dynatrace.com/docs/shortlink/grail'}],
 },
 {
-  id:'query', title:'Query & apps layer', port:'443 (browser → UI)', proto:'HTTPS',
-  carries:'DQL queries, dashboard renders, notebook runs, alerting evaluations',
-  desc:'Where you actually read the data back out — DQL in Notebooks, dashboard tiles, custom threshold alerts, and Davis anomaly detectors all query Grail through this layer.',
+  id:'query', em:'🔍', color:'#F7D354', title:'The magnifying glass', tech:'Query & apps layer',
+  kid:'People can search through it and see colorful charts and dashboards.',
+  port:'443 (browser → UI)', proto:'HTTPS', carries:'DQL queries, dashboard renders, notebook runs, alerting evaluations',
   specs:[
     {k:'Core commands', v:'fetch (records), timeseries (metrics), filter, summarize, parse, join, lookup'},
     {k:'Surfaces', v:'Notebooks, Dashboards, Logs app, Data Explorer, Settings-based alerting'},
@@ -293,126 +274,173 @@ const STAGES = [
   links:[{l:'Dynatrace Query Language — hub', u:'https://docs.dynatrace.com/docs/shortlink/dql-dynatrace-query-language-hub'}],
 },
 {
-  id:'notify', title:'Notification targets', port:'443 (outbound webhooks)', proto:'HTTPS',
-  carries:'Problem/vulnerability alerts as email, Slack messages, Jira tickets',
-  desc:'The loop back to a human. A Workflow triggered by a Davis problem (or a security event) sends outbound to whichever target you configured — this closes the circle back to Day 5–6\'s alert chain.',
+  id:'notify', em:'🔔', color:'#E8734A', title:'The messenger', tech:'Notification targets',
+  kid:'If something looks wrong, a message flies out to a real person to help!',
+  port:'443 (outbound webhooks)', proto:'HTTPS', carries:'Problem/vulnerability alerts as email, Slack messages, Jira tickets',
   specs:[
     {k:'Trigger', v:'Workflow, listening for a Davis problem or security event on the cluster'},
     {k:'Targets', v:'Email (Dynatrace\'s own service), Slack (incoming webhook), Jira (REST API), ServiceNow, and others'},
-    {k:'Templating', v:'Workflow email/message bodies use `{{ event()[\'field\'] }}` expressions pulled from the triggering event'},
+    {k:'Templating', v:'Workflow email/message bodies use expressions pulled from the triggering event'},
   ],
   notes:['In Gen3, this replaces the classic alerting-profile + problem-notification pair with one workflow object.'],
   links:[{l:'Metric events / custom alerting', u:'https://docs.dynatrace.com/docs/shortlink/metric-events-for-alerting'}],
 },
 ];
 
-// ---- Build the 3D ring ----
-const ring = document.getElementById('ring');
 const N = STAGES.length;
-const STEP = 360 / N;
-const RADIUS = window.innerWidth < 720 ? 260 : 420;
 
-STAGES.forEach((s, i) => {
-  const el = document.createElement('div');
-  el.className = 'node3d';
-  el.dataset.id = s.id;
-  el.dataset.angle = i * STEP;
-  el.style.transform = `rotateY(${i*STEP}deg) translateZ(${RADIUS}px)`;
-  el.innerHTML = `
-    <div class="face3d">
-      <div class="idx">STAGE ${String(i+1).padStart(2,'0')}</div>
-      <div class="n-title">${s.title}</div>
-      <div class="n-port">${s.port}</div>
-      <div class="n-hint">click for full specs</div>
-    </div>`;
-  el.addEventListener('click', () => openPanel(s, el));
-  ring.appendChild(el);
+function hexToRgb(hex){
+  const n = parseInt(hex.slice(1), 16);
+  return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+}
+STAGES.forEach(s => s.rgb = hexToRgb(s.color));
+
+function pathPoint(i){
+  const x = Math.sin(i*0.85) * 220;
+  const y = Math.cos(i*1.3) * 60 - 20;
+  const z = i * 160 - (N-1)*160/2;
+  return {x, y, z};
+}
+STAGES.forEach((s, i) => { s.p = pathPoint(i); });
+
+// ---- Canvas setup ----
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
+
+// ---- Starfield ----
+const STARS = [];
+for(let i=0;i<140;i++){
+  STARS.push({x:Math.random(), y:Math.random(), r:Math.random()*1.4+0.3, phase:Math.random()*Math.PI*2});
+}
+
+// ---- Rotation state ----
+let angle = 0.4;
+let dragging = false;
+let dragStartX = 0, dragStartAngle = 0;
+let moved = false;
+let paused = false;
+
+canvas.addEventListener('mousedown', (e) => {
+  dragging = true; moved = false;
+  dragStartX = e.clientX; dragStartAngle = angle;
+  canvas.classList.add('dragging');
 });
+window.addEventListener('mousemove', (e) => {
+  if(!dragging) return;
+  const dx = e.clientX - dragStartX;
+  if(Math.abs(dx) > 3) moved = true;
+  angle = dragStartAngle + dx * 0.006;
+});
+window.addEventListener('mouseup', (e) => {
+  if(dragging && !moved) handleClick(e.clientX, e.clientY);
+  dragging = false;
+  canvas.classList.remove('dragging');
+});
+canvas.addEventListener('touchstart', (e) => {
+  dragging = true; moved = false;
+  dragStartX = e.touches[0].clientX; dragStartAngle = angle;
+}, {passive:true});
+window.addEventListener('touchmove', (e) => {
+  if(!dragging) return;
+  const dx = e.touches[0].clientX - dragStartX;
+  if(Math.abs(dx) > 3) moved = true;
+  angle = dragStartAngle + dx * 0.006;
+}, {passive:true});
+window.addEventListener('touchend', (e) => {
+  if(dragging && !moved && e.changedTouches[0]){
+    handleClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }
+  dragging = false;
+}, {passive:true});
 
-// ---- Spec table (accessible fallback / full reference) ----
+document.getElementById('btn-pause').addEventListener('click', (e) => {
+  paused = !paused;
+  e.target.textContent = paused ? '▶ play' : '⏸ pause';
+});
+document.getElementById('btn-reset').addEventListener('click', () => { angle = 0.4; });
+
+// ---- Projection ----
+const FOCAL = 900, CAMZ = 900, TILT = 0.26;
+const cosT = Math.cos(TILT), sinT = Math.sin(TILT);
+
+function project(p, ang){
+  const cosA = Math.cos(ang), sinA = Math.sin(ang);
+  const x = p.x*cosA + p.z*sinA;
+  const zr = -p.x*sinA + p.z*cosA;
+  const y2 = p.y*cosT - zr*sinT;
+  const z2 = p.y*sinT + zr*cosT;
+  const depth = CAMZ + z2;
+  const scale = FOCAL/depth;
+  return {sx: W/2 + x*scale, sy: H/2 + y2*scale, scale, depth};
+}
+
+// ---- Comet progress along the path ----
+let progress = 0;
+let lastStationIndex = -1;
+const trail = [];
+
+function lerp(a,b,t){ return a + (b-a)*t; }
+function lerpPoint(p1, p2, t){
+  return {x:lerp(p1.x,p2.x,t), y:lerp(p1.y,p2.y,t), z:lerp(p1.z,p2.z,t)};
+}
+function lerpColor(c1, c2, t){
+  return `rgb(${Math.round(lerp(c1.r,c2.r,t))},${Math.round(lerp(c1.g,c2.g,t))},${Math.round(lerp(c1.b,c2.b,t))})`;
+}
+
+const captionText = document.getElementById('caption-text');
+const captionStep = document.getElementById('caption-step');
+const captionDot = document.getElementById('caption-dot');
+
+function updateCaption(idx){
+  const s = STAGES[idx];
+  captionStep.textContent = `STOP ${idx+1} / ${N}`;
+  captionDot.style.background = s.color;
+  captionText.style.opacity = 0;
+  setTimeout(() => {
+    captionText.innerHTML = `<span class="em">${s.em}</span>${s.kid}`;
+    captionText.style.opacity = 1;
+  }, 150);
+}
+updateCaption(0);
+
+// ---- Spec table (accessible / technical reference) ----
 const tbody = document.getElementById('spec-tbody');
 STAGES.forEach((s, i) => {
   const tr = document.createElement('tr');
   tr.style.cursor = 'pointer';
   tr.innerHTML = `
     <td class="mono" style="color:var(--text-3)">${String(i+1).padStart(2,'0')}</td>
-    <td class="cell-n">${s.title}</td>
+    <td class="cell-n">${s.em} ${s.tech}</td>
     <td class="cell-port">${s.port}</td>
     <td class="cell-proto">${s.proto}</td>
     <td class="cell-data">${s.carries}</td>
   `;
-  tr.addEventListener('click', () => openPanel(s, document.querySelector(`.node3d[data-id="${s.id}"]`)));
+  tr.addEventListener('click', () => openPanel(s));
   tbody.appendChild(tr);
-});
-
-// ---- Drag to rotate + idle auto-spin ----
-const stage = document.getElementById('stage');
-let currentAngle = 0;
-let dragging = false;
-let lastX = 0;
-let spinning = true;
-let lastFrame = null;
-
-function tick(ts){
-  if (lastFrame == null) lastFrame = ts;
-  const dt = ts - lastFrame;
-  lastFrame = ts;
-  if (spinning && !dragging) {
-    currentAngle += dt * 0.012;
-    applyRotation();
-  }
-  requestAnimationFrame(tick);
-}
-function applyRotation(){
-  ring.style.transform = `rotateX(-8deg) rotateY(${currentAngle}deg)`;
-}
-requestAnimationFrame(tick);
-
-function pointerDown(e){
-  dragging = true;
-  stage.classList.add('dragging');
-  lastX = (e.touches ? e.touches[0].clientX : e.clientX);
-}
-function pointerMove(e){
-  if (!dragging) return;
-  const x = (e.touches ? e.touches[0].clientX : e.clientX);
-  const dx = x - lastX;
-  lastX = x;
-  currentAngle += dx * 0.35;
-  applyRotation();
-}
-function pointerUp(){
-  dragging = false;
-  stage.classList.remove('dragging');
-}
-stage.addEventListener('mousedown', pointerDown);
-window.addEventListener('mousemove', pointerMove);
-window.addEventListener('mouseup', pointerUp);
-stage.addEventListener('touchstart', pointerDown, {passive:true});
-window.addEventListener('touchmove', pointerMove, {passive:true});
-window.addEventListener('touchend', pointerUp);
-
-document.getElementById('btn-spin').addEventListener('click', (e) => {
-  spinning = !spinning;
-  e.target.textContent = spinning ? 'pause spin' : 'resume spin';
-});
-document.getElementById('btn-reset').addEventListener('click', () => {
-  currentAngle = 0;
-  applyRotation();
 });
 
 // ---- Modal ----
 const overlay = document.getElementById('overlay');
 const panel = document.getElementById('panel');
-let lastRect = null;
 
-function openPanel(s, sourceEl){
-  lastRect = sourceEl ? sourceEl.getBoundingClientRect() : {top:innerHeight/2-40,left:innerWidth/2-190,width:380,height:80};
-  document.getElementById('panel-tag').textContent = `STAGE · ${s.port}`;
-  document.getElementById('panel-title').textContent = s.title;
-  document.getElementById('panel-desc').textContent = s.desc;
+function openPanel(s){
+  const rect = {top: H*0.3, left: W*0.3, width: 260, height: 100};
+  document.getElementById('panel-eyebrow').textContent = `STOP ${STAGES.indexOf(s)+1} OF ${N} · ${s.port}`;
+  document.getElementById('panel-em').textContent = s.em;
+  document.getElementById('panel-title-text').textContent = s.tech;
+  document.getElementById('panel-kid').textContent = s.kid;
 
-  let body = `<div class="spec-grid">${s.specs.map(x=>`<div class="spec-card"><div class="k">${x.k}</div><div class="v">${x.v}</div></div>`).join('')}</div>`;
+  let body = `<div class="panel-section-label">Technical specification</div><div class="spec-grid">${s.specs.map(x=>`<div class="spec-card"><div class="k">${x.k}</div><div class="v">${x.v}</div></div>`).join('')}</div>`;
   if (s.notes && s.notes.length){
     body += `<div class="panel-section-label">Worth remembering</div><ul>${s.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`;
   }
@@ -422,10 +450,10 @@ function openPanel(s, sourceEl){
   document.getElementById('panel-body').innerHTML = body;
 
   panel.style.display = 'flex';
-  panel.style.top = lastRect.top + 'px';
-  panel.style.left = lastRect.left + 'px';
-  panel.style.width = lastRect.width + 'px';
-  panel.style.height = lastRect.height + 'px';
+  panel.style.top = rect.top + 'px';
+  panel.style.left = rect.left + 'px';
+  panel.style.width = rect.width + 'px';
+  panel.style.height = rect.height + 'px';
   panel.style.borderRadius = '8px';
   panel.style.transition = 'none';
   overlay.classList.add('open');
@@ -444,19 +472,168 @@ function openPanel(s, sourceEl){
   });
 }
 function closePanel(){
-  if (!lastRect) { panel.style.display='none'; overlay.classList.remove('open'); return; }
-  panel.style.top = lastRect.top + 'px';
-  panel.style.left = lastRect.left + 'px';
-  panel.style.width = lastRect.width + 'px';
-  panel.style.height = lastRect.height + 'px';
-  panel.style.borderRadius = '8px';
   overlay.classList.remove('open');
   document.body.style.overflow = '';
-  setTimeout(() => { panel.style.display = 'none'; }, 320);
+  setTimeout(() => { panel.style.display = 'none'; }, 200);
 }
 document.getElementById('close-btn').addEventListener('click', closePanel);
 overlay.addEventListener('click', closePanel);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.style.display !== 'none') closePanel(); });
+
+// ---- Click hit-testing against last-drawn station screen positions ----
+let lastScreenPositions = [];
+function handleClick(clientX, clientY){
+  const rect = canvas.getBoundingClientRect();
+  const cx = clientX - rect.left, cy = clientY - rect.top;
+  let best = null, bestDist = Infinity;
+  lastScreenPositions.forEach(sp => {
+    const d = Math.hypot(sp.sx - cx, sp.sy - cy);
+    const hitR = 26 * sp.scale + 10;
+    if(d < hitR && d < bestDist){ bestDist = d; best = sp.stage; }
+  });
+  if(best) openPanel(best);
+}
+
+// ---- Render loop ----
+let lastTs = null;
+function render(ts){
+  if(lastTs == null) lastTs = ts;
+  const dt = Math.min(ts - lastTs, 48);
+  lastTs = ts;
+
+  if(!dragging && !paused){
+    angle += dt * 0.00012;
+  }
+  if(!paused){
+    progress += dt * 0.00034;
+    if(progress >= N-1 + 0.6) progress = 0;
+  }
+
+  ctx.clearRect(0,0,W,H);
+
+  // starfield
+  const t = ts*0.001;
+  STARS.forEach(st => {
+    const tw = 0.5 + 0.5*Math.sin(t*1.2 + st.phase);
+    ctx.beginPath();
+    ctx.arc(st.x*W, st.y*H, st.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(230,235,240,${0.15 + 0.5*tw})`;
+    ctx.fill();
+  });
+
+  // project stations
+  const proj = STAGES.map(s => ({stage:s, ...project(s.p, angle)}));
+
+  // path (glow, color-blended per segment)
+  for(let i=0;i<N-1;i++){
+    const a = proj[i], b = proj[i+1];
+    const grad = ctx.createLinearGradient(a.sx, a.sy, b.sx, b.sy);
+    grad.addColorStop(0, STAGES[i].color);
+    grad.addColorStop(1, STAGES[i+1].color);
+    ctx.save();
+    ctx.strokeStyle = grad;
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.14;
+    ctx.lineWidth = 14;
+    ctx.beginPath(); ctx.moveTo(a.sx,a.sy); ctx.lineTo(b.sx,b.sy); ctx.stroke();
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(a.sx,a.sy); ctx.lineTo(b.sx,b.sy); ctx.stroke();
+    ctx.restore();
+  }
+
+  // comet position + trail
+  const segF = Math.floor(Math.min(progress, N-1-0.0001));
+  const segT = Math.min(progress - segF, 1);
+  const idxA = Math.min(segF, N-1), idxB = Math.min(segF+1, N-1);
+  const cometP = lerpPoint(STAGES[idxA].p, STAGES[idxB].p, segT);
+  const cometProj = project(cometP, angle);
+  const cometColor = lerpColor(STAGES[idxA].rgb, STAGES[idxB].rgb, segT);
+
+  trail.push({sx:cometProj.sx, sy:cometProj.sy, scale:cometProj.scale, color:cometColor});
+  if(trail.length > 16) trail.shift();
+  trail.forEach((pt, i) => {
+    const a2 = (i/trail.length) * 0.5;
+    ctx.beginPath();
+    ctx.arc(pt.sx, pt.sy, 5*pt.scale*(i/trail.length), 0, Math.PI*2);
+    ctx.fillStyle = pt.color;
+    ctx.globalAlpha = a2;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // comet glow
+  ctx.beginPath();
+  const glowR = 16*cometProj.scale;
+  const rg = ctx.createRadialGradient(cometProj.sx,cometProj.sy,0,cometProj.sx,cometProj.sy,glowR);
+  rg.addColorStop(0, 'rgba(255,255,255,0.95)');
+  rg.addColorStop(0.4, cometColor);
+  rg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = rg;
+  ctx.arc(cometProj.sx, cometProj.sy, glowR, 0, Math.PI*2);
+  ctx.fill();
+
+  // stations, back-to-front
+  const order = proj.slice().sort((a,b) => b.depth - a.depth);
+  lastScreenPositions = [];
+  order.forEach(o => {
+    const s = o.stage;
+    const idx = STAGES.indexOf(s);
+    const isNear = Math.abs(progress - idx) < 0.5;
+    const R = (isNear ? 30 : 24) * o.scale;
+
+    // pulse ring when comet is near
+    if(isNear){
+      ctx.beginPath();
+      ctx.arc(o.sx, o.sy, R + 6 + 4*Math.sin(t*4), 0, Math.PI*2);
+      ctx.strokeStyle = s.color;
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // planet body
+    const bodyGrad = ctx.createRadialGradient(o.sx-R*0.3, o.sy-R*0.3, R*0.1, o.sx, o.sy, R);
+    bodyGrad.addColorStop(0, '#ffffff');
+    bodyGrad.addColorStop(0.25, s.color);
+    bodyGrad.addColorStop(1, s.color);
+    ctx.beginPath();
+    ctx.arc(o.sx, o.sy, R, 0, Math.PI*2);
+    ctx.fillStyle = bodyGrad;
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.stroke();
+
+    // emoji
+    ctx.font = `${Math.round(R*1.15)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.em, o.sx, o.sy);
+
+    // title
+    ctx.font = `700 ${Math.round(13*o.scale+2)}px Inter, sans-serif`;
+    ctx.fillStyle = 'rgba(241,239,230,0.92)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(s.title, o.sx, o.sy + R + 8);
+
+    lastScreenPositions.push({sx:o.sx, sy:o.sy, scale:o.scale, stage:s});
+  });
+
+  // caption sync
+  const nearestIdx = Math.round(Math.min(progress, N-1));
+  if(nearestIdx !== lastStationIndex){
+    lastStationIndex = nearestIdx;
+    updateCaption(nearestIdx);
+  }
+
+  requestAnimationFrame(render);
+}
+
+resize();
+requestAnimationFrame(render);
 </script>
 </body>
 </html>
