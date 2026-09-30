@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smartscape Topology — EasyTrade</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>◱</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F7F4; --paper-2:#FFFFFF; --ink:#15181B; --ink-2:#565C61; --ink-3:#8B9096;
+  --line:#E1E0DA; --line-strong:#C7C6BE; --accent:#1F3A5F; --accent-soft:#EEF1F5;
+  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;padding:16px 32px;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(247,247,244,0.92);
+  backdrop-filter:blur(6px);z-index:60;
+}
+.brand2{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.01em}
+.brand2 .dot{width:5px;height:5px;border-radius:50%;background:var(--ink-3)}
+.topnav{display:flex;gap:26px;font-size:13px}
+.topnav a{color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent;text-decoration:none;transition:color .15s,border-color .15s}
+.topnav a:hover, .topnav a.current{color:var(--ink);border-color:var(--accent)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+header.hero{padding:52px 0 18px}
+.eyebrow{font-size:12.5px;color:var(--ink-3);margin-bottom:14px;font-style:italic}
+h1{font-size:clamp(27px,3.6vw,38px);font-weight:700;max-width:720px;line-height:1.22;letter-spacing:-0.02em;color:var(--ink)}
+.sub{margin-top:14px;max-width:640px;color:var(--ink-2);font-size:15px;line-height:1.65}
+.env-line{margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--ink-3);display:flex;gap:22px;flex-wrap:wrap}
+.env-line b{color:var(--ink-2);font-weight:500}
+
+/* ---- Diagram ---- */
+.diagram-outer{
+  margin:32px 0 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-2);
+  overflow-x:auto;
+}
+svg#topology{display:block;width:100%;min-width:760px}
+.layer-label{font-family:var(--mono);font-size:10.5px;fill:var(--ink-3);letter-spacing:0.02em}
+.layer-count{font-family:var(--mono);font-size:9.5px;fill:var(--ink-3)}
+.layer-rule{stroke:var(--line);stroke-width:1}
+.edge{stroke:var(--line-strong);stroke-width:1;fill:none;transition:stroke .15s,stroke-width .15s}
+.edge.lit{stroke:var(--accent);stroke-width:1.5}
+.node-rect{fill:var(--paper-2);stroke:var(--line-strong);stroke-width:1;transition:stroke .15s,fill .15s;cursor:pointer}
+.node-rect:hover, .node-rect.lit{stroke:var(--accent);fill:var(--accent-soft)}
+.node-title{font-family:var(--sans);font-size:11.5px;font-weight:600;fill:var(--ink);pointer-events:none}
+.node-sub{font-family:var(--mono);font-size:9px;fill:var(--ink-3);pointer-events:none}
+.node-dc{stroke-dasharray:3 3}
+.node-dc .node-title, .node-dc .node-sub{fill:var(--ink-3)}
+
+.diagram-hint{
+  padding:11px 20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-3);
+  background:var(--paper);
+}
+
+/* ---- Legend ---- */
+.legend-row{display:flex;gap:24px;flex-wrap:wrap;margin:18px 0 4px;font-size:12px;color:var(--ink-3)}
+.legend-row span{display:inline-flex;align-items:center;gap:7px}
+.legend-sw{width:11px;height:11px;border-radius:2px;border:1px solid var(--line-strong);background:var(--paper-2);display:inline-block}
+.legend-sw.dc{border-style:dashed}
+
+/* ---- Reference table ---- */
+.ref-section{margin:48px 0 80px}
+.ref-head{margin-bottom:8px;padding-bottom:14px;border-bottom:1px solid var(--line-strong)}
+.ref-head h2{font-size:19px;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
+.ref-head p{font-size:13.5px;color:var(--ink-3);margin-top:6px}
+.ref-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+.ref-table th{text-align:left;font-size:11px;color:var(--ink-3);font-weight:500;padding:10px 14px;border-bottom:1px solid var(--line-strong)}
+.ref-table td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink)}
+.ref-table tr{cursor:pointer}
+.ref-table tr:hover td{background:var(--accent-soft)}
+.ref-table .cell-layer{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.ref-table .cell-n{font-weight:600}
+.ref-table .cell-id{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+
+footer{padding:40px 0 64px;border-top:1px solid var(--line);color:var(--ink-3);font-size:12.5px;margin-top:24px}
+
+/* ---- Modal (shared register with the data-flow page) ---- */
+.overlay{position:fixed;inset:0;background:rgba(20,22,20,0);z-index:80;display:none;transition:background .28s ease}
+.overlay.open{display:block;background:rgba(20,22,20,0.4)}
+.panel{
+  position:fixed;background:var(--paper-2);border:1px solid var(--line-strong);border-radius:8px;
+  overflow:hidden;transition:top .32s cubic-bezier(.2,.85,.3,1),left .32s cubic-bezier(.2,.85,.3,1),
+  width .32s cubic-bezier(.2,.85,.3,1),height .32s cubic-bezier(.2,.85,.3,1),border-radius .32s ease;
+  display:flex;flex-direction:column;z-index:81;box-shadow:0 24px 60px -16px rgba(0,0,0,0.25);
+}
+.panel-head{padding:24px 28px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-shrink:0}
+.panel-eyebrow{font-size:11.5px;color:var(--ink-3);margin-bottom:7px}
+.panel-title{font-size:19px;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
+.panel-tech{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:6px}
+.close-btn{flex-shrink:0;width:28px;height:28px;border-radius:5px;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink-2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.close-btn:hover{color:var(--ink);border-color:var(--ink-3)}
+.panel-body{padding:24px 28px 36px;overflow-y:auto;flex:1}
+.panel-desc{font-size:14px;color:var(--ink);line-height:1.65}
+.panel-section-label{font-size:11.5px;color:var(--ink-3);margin:22px 0 11px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.dep-list{display:flex;flex-direction:column;gap:6px}
+.dep-item{font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:baseline}
+.dep-item .arrow{font-family:var(--mono);color:var(--ink-3);font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand2"><span class="dot"></span>EasyTrade field guide</div>
+  <nav class="topnav">
+    <a href="index.html">Container yard</a>
+    <a href="sidebar.html">Guide</a>
+    <a href="dataflow.html">Data flow</a>
+    <a href="smartscape.html" class="current">Topology</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">EasyTrade lab · Smartscape topology</div>
+    <h1>The dependency map of the running stack</h1>
+    <p class="sub">Every entity Dynatrace actually detected on this Docker deployment, laid out exactly as Smartscape stacks them — applications above the services they call, services above the processes that run them, processes above the host, host above its data center. Click any entity for its full detail.</p>
+    <div class="env-line">
+      <span><b>Host:</b> Kali Linux (single VM)</span>
+      <span><b>Host group:</b> easytrade-lab</span>
+      <span><b>Monitoring mode:</b> Full-Stack</span>
+      <span><b>Deployment:</b> Docker Compose</span>
+    </div>
+  </header>
+
+  <div class="diagram-outer">
+    <svg id="topology" viewBox="0 0 1040 620" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="diagram-hint">hover an entity to trace its dependencies · click for full detail</div>
+  </div>
+  <div class="legend-row">
+    <span><i class="legend-sw"></i>detected entity</span>
+    <span><i class="legend-sw dc"></i>layer present, nothing detected</span>
+  </div>
+
+  <section class="ref-section">
+    <div class="ref-head">
+      <h2>Entity reference</h2>
+      <p>The same fifteen entities as a flat list — layer, technical name, and the identifier Dynatrace assigned where one was captured.</p>
+    </div>
+    <table class="ref-table" id="ref-table">
+      <thead><tr><th>Layer</th><th>Entity</th><th>Type</th><th>Dynatrace ID</th></tr></thead>
+      <tbody id="ref-tbody"></tbody>
+    </table>
+  </section>
+
+  <footer>Smartscape topology — EasyTrade lab · Dynatrace Associate bootcamp</footer>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="panel" id="panel" style="display:none">
+  <div class="panel-head">
+    <div>
+      <div class="panel-eyebrow" id="panel-eyebrow"></div>
+      <div class="panel-title" id="panel-title"></div>
+      <div class="panel-tech" id="panel-tech"></div>
+    </div>
+    <button class="close-btn" id="close-btn" aria-label="Close">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script>
+// ---- The actual EasyTrade Smartscape entities, layer by layer ----
+const LAYERS = ['app','service','process','host','dc'];
+const LAYER_LABEL = {app:'Applications', service:'Services', process:'Processes', host:'Hosts', dc:'Data centers'};
+
+const ENTITIES = [
+  { id:'app-web', layer:'app', name:'EasyTrade Web', tech:'RUM-monitored application',
+    detail:'The browser application real users interact with. Detected automatically once OneAgent\'s RUM tag is injected into the served pages — no manual configuration needed for the application entity itself to appear.',
+    deps:['svc-web','svc-login','svc-trade','svc-account','svc-ccorder'] },
+
+  { id:'svc-web', layer:'service', name:'Static & routing', tech:'Web request service', id_dt:null,
+    detail:'Serves the frontend bundle and routes API calls to the right backend service. This is the service layer sitting directly under the reverse proxy process.',
+    deps:['proc-proxy'] },
+  { id:'svc-login', layer:'service', name:'/loginservice/api/Login', tech:'Web request service', id_dt:null,
+    detail:'Handles authentication. Confirmed live in a captured distributed trace — 119ms duration, 200 response, one SELECT and one CONNECT against TradeManagement.',
+    deps:['proc-login'] },
+  { id:'svc-trade', layer:'service', name:'Trade execution', tech:'Web request service', id_dt:null,
+    detail:'Matches and executes buy/sell orders placed from the frontend. Internally, this service is also the one that calls out to the third-party provider on the process behind it.',
+    deps:['proc-engine'] },
+  { id:'svc-account', layer:'service', name:'Account & portfolio', tech:'Web request service', id_dt:null,
+    detail:'Serves balance and holdings data for the logged-in account.',
+    deps:['proc-account'] },
+  { id:'svc-ccorder', layer:'service', name:'Credit card orders', tech:'Web request service', id_dt:null,
+    detail:'Handles credit-card-funded order requests.',
+    deps:['proc-ccorder'] },
+  { id:'svc-thirdparty', layer:'service', name:'Third-party provider', tech:'Web request service (internal)', id_dt:null,
+    detail:'Not called directly by the frontend — the trade engine calls it server-side to simulate an external payment/data provider. This is the process that was CPU-capped earlier in the bootcamp.',
+    deps:['proc-thirdparty'] },
+
+  { id:'proc-proxy', layer:'process', name:'frontendreverseproxy', tech:'Process group', id_dt:null,
+    detail:'Fronts the EasyTrade UI and routes traffic to the microservices behind it.',
+    deps:['host-kali'] },
+  { id:'proc-login', layer:'process', name:'easyTradeLoginService.dll', tech:'.NET process', id_dt:'PROCESS_GROUP-F6407400B33A8A89',
+    detail:'The .NET login service, running on the dotnet runtime. This is the same process group captured in the distributed trace shown earlier in this bootcamp.',
+    deps:['host-kali'] },
+  { id:'proc-engine', layer:'process', name:'EngineApplication', tech:'Java / Spring Boot process', id_dt:null,
+    detail:'com.dynatrace.easytrade.engine.EngineApplication — the trade-matching engine.',
+    deps:['host-kali'] },
+  { id:'proc-account', layer:'process', name:'AccountServiceApplication', tech:'Java / Spring Boot process', id_dt:null,
+    detail:'com.dynatrace.easytrade.accountservice.AccountServiceApplication',
+    deps:['host-kali'] },
+  { id:'proc-ccorder', layer:'process', name:'CreditCardOrderService', tech:'Java / Spring Boot process', id_dt:null,
+    detail:'com.dynatrace.easytrade.creditcardorderservice.Application',
+    deps:['host-kali'] },
+  { id:'proc-thirdparty', layer:'process', name:'third-party-service', tech:'Java process', id_dt:null,
+    detail:'The container most likely to spike CPU under load — capped via compose.override.yaml earlier in the bootcamp to keep the lab VM usable.',
+    deps:['host-kali'] },
+
+  { id:'host-kali', layer:'host', name:'Kali Linux VM', tech:'Host · host group: easytrade-lab', id_dt:'HOST-D58AED2E3DDF4AC0',
+    detail:'The single VM running every EasyTrade container plus OneAgent itself, in Full-Stack monitoring mode. Installed with SKIP_OS_SUPPORT_CHECK=true, since Kali isn\'t on OneAgent\'s official supported-OS list but is Debian-based and works.',
+    deps:['dc-none'] },
+
+  { id:'dc-none', layer:'dc', name:'Not detected', tech:'Data center layer', id_dt:null,
+    detail:'Empty on a bare VM with no cloud provider or vCenter integration — Dynatrace has no location metadata to group by. This layer only populates with a real value once there\'s an AWS/Azure/GCP region or a VMware cluster to detect.',
+    deps:[] },
+];
+
+const byId = {};
+ENTITIES.forEach(e => byId[e.id] = e);
+
+// ---- Layout ----
+const W = 1040, H = 620;
+const LAYER_Y = {app:60, service:190, process:330, host:470, dc:570};
+const LAYER_H = 70;
+
+const byLayer = {};
+LAYERS.forEach(l => byLayer[l] = ENTITIES.filter(e => e.layer===l));
+byLayer.dc = [ENTITIES.find(e=>e.layer==='dc')]; // keep centered, single node
+
+function layoutLayer(list, y){
+  const n = list.length;
+  const nodeW = 150, gap = 22;
+  const totalW = n*nodeW + (n-1)*gap;
+  let x = (W - totalW)/2;
+  list.forEach(e => {
+    e.x = x; e.y = y; e.w = nodeW; e.h = LAYER_H;
+    e.cx = x + nodeW/2; e.cyTop = y; e.cyBottom = y + LAYER_H;
+    x += nodeW + gap;
+  });
+}
+LAYERS.forEach(l => layoutLayer(byLayer[l], LAYER_Y[l]));
+
+// ---- Build SVG ----
+const svg = document.getElementById('topology');
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+// layer rules + labels
+LAYERS.forEach(l => {
+  const y = LAYER_Y[l] - 24;
+  svg.appendChild(el('line', {x1:24,y1:y,x2:W-24,y2:y, class:'layer-rule'}));
+  const label = el('text', {x:24, y:y-8, class:'layer-label'});
+  label.textContent = LAYER_LABEL[l];
+  svg.appendChild(label);
+  const count = el('text', {x: W-24, y:y-8, class:'layer-count', 'text-anchor':'end'});
+  count.textContent = `${byLayer[l].length} ${byLayer[l].length===1?'entity':'entities'}`;
+  svg.appendChild(count);
+});
+
+// edges
+const edgeEls = {};
+ENTITIES.forEach(e => {
+  (e.deps||[]).forEach(depId => {
+    const target = byId[depId];
+    if(!target) return;
+    const x1=e.cx, y1=e.cyBottom, x2=target.cx, y2=target.cyTop;
+    const midY = (y1+y2)/2;
+    const path = el('path', {
+      d:`M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`,
+      class:'edge', 'data-from':e.id, 'data-to':depId,
+    });
+    svg.appendChild(path);
+    (edgeEls[e.id] = edgeEls[e.id]||[]).push(path);
+    (edgeEls[depId] = edgeEls[depId]||[]).push(path);
+  });
+});
+
+// nodes
+const nodeEls = {};
+ENTITIES.forEach(e => {
+  const g = el('g', {class:'node'});
+  const rectClass = 'node-rect' + (e.layer==='dc' ? ' node-dc' : '');
+  const rect = el('rect', {x:e.x, y:e.y, width:e.w, height:e.h, rx:4, class:rectClass});
+  g.appendChild(rect);
+
+  const title = el('text', {x:e.x+12, y:e.y+27, class:'node-title'});
+  title.textContent = e.name.length > 22 ? e.name.slice(0,21)+'…' : e.name;
+  g.appendChild(title);
+
+  const sub = el('text', {x:e.x+12, y:e.y+44, class:'node-sub'});
+  sub.textContent = e.tech.length > 26 ? e.tech.slice(0,25)+'…' : e.tech;
+  g.appendChild(sub);
+
+  if(e.id_dt){
+    const idText = el('text', {x:e.x+12, y:e.y+59, class:'node-sub'});
+    idText.textContent = e.id_dt;
+    g.appendChild(idText);
+  }
+
+  g.addEventListener('mouseenter', () => highlight(e.id));
+  g.addEventListener('mouseleave', () => clearHighlight());
+  g.addEventListener('click', () => openPanel(e));
+  svg.appendChild(g);
+  nodeEls[e.id] = {g, rect};
+});
+
+function highlight(id){
+  clearHighlight();
+  const toLight = new Set([id]);
+  // walk down dependencies
+  (function walkDown(nid){
+    const n = byId[nid];
+    (n.deps||[]).forEach(d => { toLight.add(d); walkDown(d); });
+  })(id);
+  // walk up (who depends on this)
+  ENTITIES.forEach(e => { if((e.deps||[]).includes(id)) toLight.add(e.id); });
+
+  toLight.forEach(nid => { if(nodeEls[nid]) nodeEls[nid].rect.classList.add('lit'); });
+  (edgeEls[id]||[]).forEach(p => p.classList.add('lit'));
+}
+function clearHighlight(){
+  Object.values(nodeEls).forEach(n => n.rect.classList.remove('lit'));
+  svg.querySelectorAll('.edge').forEach(p => p.classList.remove('lit'));
+}
+
+// ---- Reference table ----
+const tbody = document.getElementById('ref-tbody');
+ENTITIES.forEach(e => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="cell-layer">${LAYER_LABEL[e.layer]}</td>
+    <td class="cell-n">${e.name}</td>
+    <td>${e.tech}</td>
+    <td class="cell-id">${e.id_dt || '—'}</td>
+  `;
+  tr.addEventListener('click', () => openPanel(e));
+  tbody.appendChild(tr);
+});
+
+// ---- Modal ----
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+
+function openPanel(e){
+  document.getElementById('panel-eyebrow').textContent = LAYER_LABEL[e.layer].toUpperCase().slice(0,-1) + (e.id_dt ? ` · ${e.id_dt}` : '');
+  document.getElementById('panel-title').textContent = e.name;
+  document.getElementById('panel-tech').textContent = e.tech;
+
+  let body = `<div class="panel-desc">${e.detail}</div>`;
+  if(e.deps && e.deps.length){
+    body += `<div class="panel-section-label">Runs on / depends on</div><div class="dep-list">`;
+    e.deps.forEach(d => {
+      const t = byId[d];
+      if(t) body += `<div class="dep-item"><span class="arrow">→</span>${t.name} <span style="color:var(--ink-3)">(${LAYER_LABEL[t.layer]})</span></div>`;
+    });
+    body += `</div>`;
+  }
+  const dependents = ENTITIES.filter(x => (x.deps||[]).includes(e.id));
+  if(dependents.length){
+    body += `<div class="panel-section-label">Depended on by</div><div class="dep-list">`;
+    dependents.forEach(x => {
+      body += `<div class="dep-item"><span class="arrow">←</span>${x.name} <span style="color:var(--ink-3)">(${LAYER_LABEL[x.layer]})</span></div>`;
+    });
+    body += `</div>`;
+  }
+  document.getElementById('panel-body').innerHTML = body;
+
+  const rect = {top: window.innerHeight*0.3, left: window.innerWidth*0.3, width: 260, height: 100};
+  panel.style.display = 'flex';
+  panel.style.top = rect.top + 'px';
+  panel.style.left = rect.left + 'px';
+  panel.style.width = rect.width + 'px';
+  panel.style.height = rect.height + 'px';
+  panel.style.borderRadius = '8px';
+  panel.style.transition = 'none';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  requestAnimationFrame(() => {
+    panel.style.transition = '';
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const w = Math.min(620, vw * 0.92);
+    const h = Math.min(560, vh * 0.86);
+    panel.style.top = (vh - h) / 2 + 'px';
+    panel.style.left = (vw - w) / 2 + 'px';
+    panel.style.width = w + 'px';
+    panel.style.height = h + 'px';
+    panel.style.borderRadius = '12px';
+  });
+}
+function closePanel(){
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => { panel.style.display = 'none'; }, 200);
+}
+document.getElementById('close-btn').addEventListener('click', closePanel);
+overlay.addEventListener('click', closePanel);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.style.display !== 'none') closePanel(); });
+</script>
+</body>
+</html>
